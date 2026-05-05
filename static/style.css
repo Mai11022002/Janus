@@ -1,0 +1,121 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #dadbd3;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.app-container {
+    width: 95%;
+    max-width: 1400px;
+    height: 90vh;
+    background: #fff;
+    display: flex;
+    box-shadow: 0 1px 1px 0 rgba(0,0,0,0.06), 0 2px 5px 0 rgba(0,0,0,0.2);
+}
+
+/* Sidebar Styling */
+.sidebar {
+    flex: 30%;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+}
+
+.user-profile, .chat-header {
+    height: 60px;
+    background-color: #ededed;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #ccc;
+    margin-right: 15px;
+}
+
+.search-bar {
+    padding: 10px;
+    background: #f6f6f6;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 20px;
+    border: none;
+    outline: none;
+}
+
+/* Chat Window Styling */
+.chat-window {
+    flex: 70%;
+    display: flex;
+    flex-direction: column;
+    background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); /* WhatsApp pattern */
+    background-color: #e5ddd5;
+}
+
+.message-container {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message {
+    max-width: 60%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    position: relative;
+}
+
+.received {
+    align-self: flex-start;
+    background: #fff;
+}
+
+.sent {
+    align-self: flex-end;
+    background: #dcf8c6;
+}
+
+.time {
+    font-size: 10px;
+    color: #888;
+    display: block;
+    text-align: right;
+    margin-top: 4px;
+}
+
+.chat-input {
+    padding: 10px 20px;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 20px;
+    border: none;
+    outline: none;
+}
