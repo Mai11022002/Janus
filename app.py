@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-123')
 socketio = SocketIO(app)
 
 def get_db_connection():
@@ -19,8 +19,11 @@ def get_db_connection():
 
 @app.route('/')
 def index():
-    if 'user_id' not in session:
-        return "Please log in (Login logic to be added)"
+    # Hardcode it first
+    session['user_id'] = 1
+
+    #if 'user_id' not in session:
+    #    return "Please log in (Login logic to be added)"
     
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)

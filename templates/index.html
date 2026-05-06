@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messenger</title>
-    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="app-container">
@@ -17,13 +17,14 @@
                 <input type="text" placeholder="Search or start new chat">
             </div>
             <div class="chat-list">
-                <div class="chat-item active">
+                {% for user in users %}
+                <div class="chat-item">
                     <div class="avatar"></div>
                     <div class="chat-info">
-                        <h4>Global Chat</h4>
-                        <p>Welcome to Messaging...</p>
+                        <h4>{{ user.username }}</h4>
                     </div>
                 </div>
+                {% endfor %}
             </div>
         </aside>
 
@@ -54,5 +55,7 @@
             </footer>
         </main>
     </div>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='chat.js') }}"></script>
 </body>
 </html>
