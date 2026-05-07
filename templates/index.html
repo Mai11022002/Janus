@@ -18,7 +18,7 @@
             </div>
             <div class="chat-list">
                 {% for user in users %}
-                <div class="chat-item">
+                <div class="chat-item" onclick="selectUser({{ user.id }}, '{{ user.username }}')">
                     <div class="avatar"></div>
                     <div class="chat-info">
                         <h4>{{ user.username }}</h4>
