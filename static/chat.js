@@ -14,7 +14,8 @@ async function selectUser(id, username) {
         if (data.messages) {
             data.messages.forEach(msg => {
                 const type = (msg.sender_id == id) ? 'received' : 'sent';
-                addMessageToScreen(msg.content, type);
+                const msgType = getMessageType(msg.content, msg.message_type);
+                addMessageToScreen(msg.content, type, msgType);
             });
         }
     } catch (error) {
@@ -22,13 +23,25 @@ async function selectUser(id, username) {
     }
 }
 
-function addMessageToScreen(content, type) {
+function addMessageToScreen(content, type, messageType = 'text') {
     const container = document.querySelector('.message-container');
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${type}`;
-    msgDiv.innerHTML = `<p>${content}</p>`;
+
+    if (messageType === 'image') {
+        msgDiv.innerHTML = `<img src="${content}" class="chat-image">`;
+    } else {
+        msgDiv.innerHTML = `<p>${content}</p>`;
+    }
+
     container.appendChild(msgDiv);
     container.scrollTop = container.scrollHeight;
+}
+
+function getMessageType(content, messageType) {
+    if (messageType === 'image') return 'image';
+    if (content && content.startsWith('/static/uploads/')) return 'image';
+    return 'text';
 }
 
 function sendMessage() {
@@ -51,6 +64,34 @@ const socket = io();
 
 document.getElementById('send-btn').onclick = sendMessage;
 
+document.getElementById('photo-upload').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentRecipientId) {
+        alert("Select a user first");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch('/upload', { method: 'POST', body: formData });
+        const data = await response.json();
+
+        if (data.url) {
+            socket.emit('send_message', {
+                'message': data.url,
+                'recipient_id': currentRecipientId,
+                'type': 'image'
+            });
+            addMessageToScreen(data.url, 'sent', 'image');
+        }
+    } catch (err) {
+        console.error("Upload failed:", err);
+    }
+    e.target.value = '';
+})
+
 const chatInput = document.querySelector('.chat-input input');
 chatInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
@@ -62,6 +103,7 @@ chatInput.addEventListener('keydown', (event) => {
 socket.on('receive_message', (data) => {
     if (data.recipient_id == currentRecipientId || data.sender_id == currentRecipientId) {
         if (parseInt(data.sender_id) !== parseInt(currentRecipientId)) return;
-        addMessageToScreen(data.message, 'received');
+        const msgType = getMessageType(data.message, data.type);
+        addMessageToScreen(data.message, 'received', msgType);
     }
 });

@@ -127,6 +127,20 @@ body {
     font-size: 14px;
 }
 
+.chat-image {
+    max-width: 250px;
+    max-height: 250px;
+    border-radius: 8px;
+    display: block;
+    cursor: pointer;
+}
+
+.photo-btn {
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
 /* Logout Button */
 .logout-btn {
     margin-left: auto;
