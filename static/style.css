@@ -120,6 +120,28 @@ body {
     outline: none;
 }
 
+.select-prompt {
+    text-align: center;
+    color: #999;
+    margin: auto;
+    font-size: 14px;
+}
+
+/* Logout Button */
+.logout-btn {
+    margin-left: auto;
+    font-size: 12px;
+    color: #fff;
+    background-color: #075e54;
+    text-decoration: none;
+    padding: 5px 12px;
+    border-radius: 12px;
+}
+
+.logout-btn:hover {
+    background-color: #128c7e;
+}
+
 /* Login Page Styling */
 .login-container {
     background: #fff;

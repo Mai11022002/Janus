@@ -12,6 +12,8 @@
         <aside class="sidebar">
             <header class="user-profile">
                 <div class="avatar"></div>
+                <span style="font-weight: bold; font-size: 14px;">{{ current_user.username }}</span>
+                <a href="/logout" class="logout-btn">Logout</a>
             </header>
             <div class="search-bar">
                 <input type="text" placeholder="Search or start new chat">
@@ -39,14 +41,7 @@
             </header>
 
             <div class="message-container">
-                <div class="message received">
-                    <p>Hey! Welcome to the new layout.</p>
-                    <span class="time">10:00 AM</span>
-                </div>
-                <div class="message sent">
-                    <p>Looks just like WhatsApp! Nice.</p>
-                    <span class="time">10:01 AM</span>
-                </div>
+                <p class="select-prompt">Select a user to start chatting</p>
             </div>
 
             <footer class="chat-input">

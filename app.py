@@ -54,9 +54,11 @@ def index():
     cursor = db.cursor(dictionary=True)
     cursor.execute("SELECT id, username FROM users WHERE id != %s", (session['user_id'],))
     users = cursor.fetchall()
+    cursor.execute("SELECT username FROM users WHERE id = %s", (session['user_id'],))
+    current_user = cursor.fetchone()
     db.close()
 
-    return render_template('index.html', users=users)
+    return render_template('index.html', users=users, current_user=current_user)
 
 @app.route('/messages/<int:recipient_id>')
 def get_message(recipient_id):
@@ -88,7 +90,11 @@ def handle_message(data):
     db.commit()
     db.close()
 
-    emit('receive_message', data, broadcast=True)
+    emit('receive_message', {
+        'message': data['message'],
+        'recipient_id': data['recipient_id'],
+        'sender_id': sender_id
+    }, broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
