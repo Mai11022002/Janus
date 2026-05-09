@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messenger</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.5.2/dist/browser.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -45,9 +46,11 @@
             </div>
 
             <footer class="chat-input">
+                <button id="emoji-btn" class="emoji-btn" type="button">😊</button>
+                <div id="emoji-picker-container"></div>
                 <label for="photo-upload" class="photo-btn" title="Send photo">📷</label>
                 <input type="file" id="photo-upload" accept="image/*" style="display:none">
-                <input type="text" placeholder="Type a message">
+                <input type="text" id="message-input" placeholder="Type a message">
                 <button id="send-btn">Send</button>
             </footer>
         </main>

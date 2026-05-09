@@ -74,7 +74,7 @@ def get_message(recipient_id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
-        SELECT sender_id, content, created_at
+        SELECT sender_id, content, created_at, message_type
         FROM messages
         WHERE (sender_id = %s AND receiver_id = %s)
             OR (sender_id = %s AND receiver_id = %s)

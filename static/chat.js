@@ -1,4 +1,33 @@
 let currentRecipientId = null;
+const emojiBtn = document.getElementById('emoji-btn');
+const emojiContainer = document.getElementById('emoji-picker-container');
+
+const picker = new EmojiMart.Picker({
+    onEmojiSelect: (emoji) => {
+        const input = document.getElementById('message-input');
+        const pos = input.selectionStart;
+        const before = input.value.substring(0, pos);
+        const after = input.value.substring(pos);
+        input.value = before + emoji.native + after;
+        input.focus();
+        input.selectionStart = input.selectionEnd = pos + emoji.native.length;
+    }
+});
+
+emojiContainer.appendChild(picker);
+emojiContainer.style.display = 'none';
+
+emojiBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isHidden = emojiContainer.style.display === 'none';
+    emojiContainer.style.display = isHidden ? 'block' : 'none';
+})
+
+document.addEventListener('click', (e) => {
+    if (!emojiContainer.contains(e.target) && e.target !== emojiBtn) {
+        emojiContainer.style.display = 'none';
+    }
+})
 
 async function selectUser(id, username) {
     currentRecipientId = id;
@@ -45,15 +74,16 @@ function getMessageType(content, messageType) {
 }
 
 function sendMessage() {
-    const input = document.querySelector('.chat-input input');
+    const input = document.getElementById('message-input');
     const message = input.value.trim();
 
     if (message && currentRecipientId) {
         socket.emit('send_message', {
             'message': message,
-            'recipient_id': currentRecipientId
+            'recipient_id': currentRecipientId,
+            'type': 'text'
         });
-        addMessageToScreen(message, 'sent');
+        addMessageToScreen(message, 'sent', 'text');
         input.value = '';
     } else if (!currentRecipientId) {
         alert("Select a user to chat with");
@@ -92,7 +122,7 @@ document.getElementById('photo-upload').addEventListener('change', async (e) => 
     e.target.value = '';
 })
 
-const chatInput = document.querySelector('.chat-input input');
+const chatInput = document.getElementById('message-input');
 chatInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         event.preventDefault();
