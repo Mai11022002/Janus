@@ -47,7 +47,25 @@
 
             <footer class="chat-input">
                 <button id="emoji-btn" class="emoji-btn" type="button">😊</button>
-                <div id="emoji-picker-container"></div>
+
+                <!-- Emoji, Gif and Sticker Panel -->
+                <div id="picker-panel" style="display:none;">
+                    <div class="picker-tabs">
+                        <button class="tab-btn active" data-tab="emoji">😊 Emoji</button>
+                        <button class="tab-btn" data-tab="gif">GIF</button>
+                        <button class="tab-btn" data-tab="sticker">🎭 Sticker</button>
+                    </div>
+                    <div id="tab-emoji" class="tab-content active">
+                        <div id="emoji-picker-container"></div>
+                    </div>
+                    <div id="tab-gif" class="tab-content" style="display:none;">
+                        <input type="text" id="gif-search" placeholder="Search GIFs...">
+                        <div id="gif-results"></div>
+                    </div>
+                    <div id="tab-sticker" class="tab-content" style="display:none;">
+                        <div id="sticker-results"></div>
+                    </div>
+                </div>
                 <label for="photo-upload" class="photo-btn" title="Send photo">📷</label>
                 <input type="file" id="photo-upload" accept="image/*" style="display:none">
                 <input type="text" id="message-input" placeholder="Type a message">

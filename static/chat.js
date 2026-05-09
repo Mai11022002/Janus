@@ -1,4 +1,6 @@
 let currentRecipientId = null;
+const GIPHY_API_KEY = 'u8JVjqUKx81v8IODen6mNhLT5YS1MhwD';
+const pickerPanel = document.getElementById('picker-panel');
 const emojiBtn = document.getElementById('emoji-btn');
 const emojiContainer = document.getElementById('emoji-picker-container');
 
@@ -15,19 +17,89 @@ const picker = new EmojiMart.Picker({
 });
 
 emojiContainer.appendChild(picker);
-emojiContainer.style.display = 'none';
 
 emojiBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const isHidden = emojiContainer.style.display === 'none';
-    emojiContainer.style.display = isHidden ? 'block' : 'none';
-})
+    pickerPanel.style.display = pickerPanel.style.display === 'none' ? 'block' : 'none';
+});
 
 document.addEventListener('click', (e) => {
-    if (!emojiContainer.contains(e.target) && e.target !== emojiBtn) {
-        emojiContainer.style.display = 'none';
+    if (!pickerPanel.contains(e.target) && e.target !== emojiBtn) {
+        pickerPanel.style.display = 'none';
     }
-})
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const tab = btn.dataset.tab;
+        document.getElementById('tab-emoji').style.display = tab === 'emoji' ? 'block' : 'none';
+        document.getElementById('tab-gif').style.display = tab === 'gif' ? 'block' : 'none';
+        document.getElementById('tab-sticker').style.display = tab === 'sticker' ? 'block' : 'none';
+
+        if (tab === 'gif') loadGifs('trending');
+        if (tab === 'sticker') loadStickers();
+    });
+});
+
+async function loadGifs(query) {
+    const endpoint = query === 'trending'
+    ? `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=12`
+    : `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(query)}&api_key=${GIPHY_API_KEY}&limit=12`;
+
+    try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        const resultsDiv = document.getElementById('gif-results');
+        resultsDiv.innerHTML = '';
+
+        data.results.forEach(gif => {
+            const url =gif.images.fixed_height_small.url;
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'gif-thumbnail';
+            img.onclick = () => sendMediaMessage(url, 'image');
+            resultsDiv.appendChild(img);
+        });
+    } catch (err) {
+        console.error("GIF load failed:", err);
+        document.getElementById('gif-results').innerHTML = '<p style="padding:10px;color:#999;font-size:13px;">Add your GIPHY API key to enable GIFs</p>';
+    }
+}
+
+document.getElementById('gif-search').addEventListener('input', (e) => {
+    const query = e.target.value.trim();
+    if (query.length > 1) loadGifs(query);
+    else loadGifs('trending');
+});
+
+async function loadStickers(query = '') {
+    const resultsDiv = document.getElementById('sticker-results');
+    resultsDiv.innerHTML = '<p style="padding:10px;color:#999;font-size:13px;">Loading...</p>';
+
+    const endpoint = query
+    ? `https://api.giphy.com/v1/stickers/search?q=${encodeURIComponent(query)}&api_key=${GIPHY_API_KEY}&limit=12`
+    : `https://api.giphy.com/v1/stickers/trending?api_key=${GIPHY_API_KEY}&limit=12`;
+
+    try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        resultsDiv.innerHTML = '';
+
+        data.data.forEach(sticker => {
+            const url = sticker.images.fixed_height_small.url;
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'sticker-thumbnail';
+            img.onclick = () => sendMediaMessage (url, 'image');
+            resultsDiv.appendChild(img);
+        });
+    } catch (err) {
+        console.error("Sticker load failed:", err);
+    }
+}
 
 async function selectUser(id, username) {
     currentRecipientId = id;
@@ -120,7 +192,7 @@ document.getElementById('photo-upload').addEventListener('change', async (e) => 
         console.error("Upload failed:", err);
     }
     e.target.value = '';
-})
+});
 
 const chatInput = document.getElementById('message-input');
 chatInput.addEventListener('keydown', (event) => {
