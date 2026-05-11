@@ -1,9 +1,11 @@
 let currentRecipientId = null;
 const GIPHY_API_KEY = 'u8JVjqUKx81v8IODen6mNhLT5YS1MhwD';
+// ────────────────────── DOM References ────────────────────
 const pickerPanel = document.getElementById('picker-panel');
 const emojiBtn = document.getElementById('emoji-btn');
-const emojiContainer = document.getElementById('emoji-picker-container');
-
+const emojiContainer = document.getElementById('tab-emoji');
+const chatInput = document.getElementById('message-input');
+// ────────────────────── Emoji Picker Setup ────────────────────
 const picker = new EmojiMart.Picker({
     onEmojiSelect: (emoji) => {
         const input = document.getElementById('message-input');
@@ -15,9 +17,8 @@ const picker = new EmojiMart.Picker({
         input.selectionStart = input.selectionEnd = pos + emoji.native.length;
     }
 });
-
 emojiContainer.appendChild(picker);
-
+// ────────────────────── Picker Panel Toggle ────────────────────
 emojiBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     pickerPanel.style.display = pickerPanel.style.display === 'none' ? 'block' : 'none';
@@ -28,7 +29,7 @@ document.addEventListener('click', (e) => {
         pickerPanel.style.display = 'none';
     }
 });
-
+// ────────────────────── Picker Panel Tab Switching ────────────────────
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -43,7 +44,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         if (tab === 'sticker') loadStickers();
     });
 });
-
+// ────────────────────── GIF Loader ────────────────────
 async function loadGifs(query) {
     const endpoint = query === 'trending'
     ? `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=12`
@@ -55,7 +56,7 @@ async function loadGifs(query) {
         const resultsDiv = document.getElementById('gif-results');
         resultsDiv.innerHTML = '';
 
-        data.results.forEach(gif => {
+        data.data.forEach(gif => {
             const url =gif.images.fixed_height_small.url;
             const img = document.createElement('img');
             img.src = url;
@@ -74,33 +75,49 @@ document.getElementById('gif-search').addEventListener('input', (e) => {
     if (query.length > 1) loadGifs(query);
     else loadGifs('trending');
 });
-
+// ────────────────────── Sticker Loader ────────────────────
 async function loadStickers(query = '') {
     const resultsDiv = document.getElementById('sticker-results');
+    if (resultsDiv.dataset.loaded === 'true' && !query) return;
     resultsDiv.innerHTML = '<p style="padding:10px;color:#999;font-size:13px;">Loading...</p>';
 
     const endpoint = query
-    ? `https://api.giphy.com/v1/stickers/search?q=${encodeURIComponent(query)}&api_key=${GIPHY_API_KEY}&limit=12`
-    : `https://api.giphy.com/v1/stickers/trending?api_key=${GIPHY_API_KEY}&limit=12`;
+        ? `https://api.giphy.com/v1/stickers/search?q=${encodeURIComponent(query)}&api_key=${GIPHY_API_KEY}&limit=12`
+        : `https://api.giphy.com/v1/stickers/trending?api_key=${GIPHY_API_KEY}&limit=12`;
 
     try {
         const res = await fetch(endpoint);
         const data = await res.json();
         resultsDiv.innerHTML = '';
+        resultsDiv.dataset.loaded = 'true';
 
         data.data.forEach(sticker => {
             const url = sticker.images.fixed_height_small.url;
             const img = document.createElement('img');
             img.src = url;
             img.className = 'sticker-thumbnail';
-            img.onclick = () => sendMediaMessage (url, 'image');
+            img.onclick = () => sendMediaMessage(url, 'image');
             resultsDiv.appendChild(img);
         });
     } catch (err) {
         console.error("Sticker load failed:", err);
     }
 }
-
+// ────────────────────── Send Media (GIF/Sticker/Photo) ────────────────────
+function sendMediaMessage(url, type) {
+    if (!currentRecipientId) {
+        alert("Select a user");
+        return;
+    }
+    socket.emit('send_message', {
+        'message': url,
+        'recipient_id': currentRecipientId,
+        'type': type
+    });
+    addMessageToScreen(url, 'sent', type);
+    pickerPanel.style.display = 'none';
+}
+// ────────────────────── Select User & Load Chat History ────────────────────
 async function selectUser(id, username) {
     currentRecipientId = id;
     document.querySelector('.chat-details h3').innerText = username;
@@ -123,7 +140,7 @@ async function selectUser(id, username) {
         console.error("Error fetching messages:", error);
     }
 }
-
+// ────────────────────── Render Message on Screen ────────────────────
 function addMessageToScreen(content, type, messageType = 'text') {
     const container = document.querySelector('.message-container');
     const msgDiv = document.createElement('div');
@@ -138,13 +155,14 @@ function addMessageToScreen(content, type, messageType = 'text') {
     container.appendChild(msgDiv);
     container.scrollTop = container.scrollHeight;
 }
-
+// ────────────────────── Message Type Detection ────────────────────
 function getMessageType(content, messageType) {
     if (messageType === 'image') return 'image';
     if (content && content.startsWith('/static/uploads/')) return 'image';
+    if (content && content.includes('giphy.com')) return 'image';
     return 'text';
 }
-
+// ────────────────────── Send Text Message ────────────────────
 function sendMessage() {
     const input = document.getElementById('message-input');
     const message = input.value.trim();
@@ -161,7 +179,7 @@ function sendMessage() {
         alert("Select a user to chat with");
     }
 }
-
+// ────────────────────── Socket & Event Listeners ────────────────────
 const socket = io();
 
 document.getElementById('send-btn').onclick = sendMessage;
@@ -194,7 +212,6 @@ document.getElementById('photo-upload').addEventListener('change', async (e) => 
     e.target.value = '';
 });
 
-const chatInput = document.getElementById('message-input');
 chatInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         event.preventDefault();

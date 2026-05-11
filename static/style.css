@@ -156,7 +156,6 @@ body {
   bottom: 70px;
   left: 370px;
   z-index: 1000;
-  display: none;
 }
 
 /* Unified Picker Panel */
@@ -164,7 +163,7 @@ body {
   position: absolute;
   bottom: 70px;
   left: 0;
-  width: 350px;
+  width: 420px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
@@ -197,7 +196,7 @@ body {
 }
 
 .tab-content {
-  height: 300px;
+  height: 350px;
   overflow-y: auto;
 }
 
@@ -237,9 +236,15 @@ body {
 
 /* Emoji picker fills the tab */
 #tab-emoji em-emoji-picker {
-  width: 100% !important;
-  height: 300px !important;
+  width: 420px !important;
+  height: 350px !important;
   border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+#emoji-picker-container em-emoji-picker {
+  width: 420px !important;
+  height: 350px !important;
   box-shadow: none !important;
 }
 
