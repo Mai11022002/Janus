@@ -1,5 +1,6 @@
 import uuid
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from flask_socketio import SocketIO, emit
 import mysql.connector
@@ -67,6 +68,35 @@ def index():
     db.close()
 
     return render_template('index.html', users=users, current_user=current_user)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        phone = request.form['phone']
+        password = request.form['password']
+        username = request.form['username']
+
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+
+        cursor.execute("SELECT id FROM users WHERE username = %s OR phone = %s", (username, phone))
+        existing = cursor.fetchone()
+        if existing:
+            db.close()
+            return render_template('register.html', error="Username or phone already taken")
+        
+        password_hash = generate_password_hash(password)
+        cursor.execute ("INSERT INTO users (username, password_hash, first_name, last_name, phone) VALUES (%s, %s, %s, %s, %s)", (username, password_hash, first_name, last_name, phone))
+        db.commit()
+        new_id = cursor.lastrowid
+        db.close()
+
+        session['user_id'] = new_id
+        return redirect(url_for('index'))
+    
+    return render_template('register.html')
 
 @app.route('/messages/<int:recipient_id>')
 def get_message(recipient_id):

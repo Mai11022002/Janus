@@ -14,8 +14,23 @@
             <header class="user-profile">
                 <div class="avatar"></div>
                 <span style="font-weight: bold; font-size: 14px;">{{ current_user.username }}</span>
+                <button id="new-contact-btn" class="new-contact-btn" title="New Contact">✏️</button>
                 <a href="/logout" class="logout-btn">Logout</a>
             </header>
+
+            <!-- New Contact Panel -->
+            <div id="new-contact-panel" style="display:none;">
+                <div class="new-contact-header">
+                    <button id="close-contact-btn" class="back-btn">← Back</button>
+                    <h3>New Contact</h3>
+                </div>
+                <div class="new-contact-form">
+                    <p id="contact-error" class="error" style="display:none;"></p>
+                    <p id="contact-success" style="display:none; color:green; font-size:13px; margin-bottom:10px;"></p>
+                    <input type="tel" id="contact-phone" placeholder="Phone Number (e.g. +16131234567)">
+                    <button id="add-contact-btn">Add Contact</button>
+                </div>
+            </div>
             <div class="search-bar">
                 <input type="text" placeholder="Search or start new chat">
             </div>
