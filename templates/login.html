@@ -10,7 +10,7 @@
 
 <body>
     <div class="login-container">
-        <h2>💬 Messenger</h2>
+        <h2>💬 Janus</h2>
         <p>Enter your username to continue</p>
 
         {% if error %}
@@ -21,6 +21,9 @@
             <input type="text" name="username" placeholder="Username" required autofocus>
             <button type="submit">Log In</button>
         </form>
+        <p style="margin-top:16px; font-size:13px;">
+            No account? <a href="/register" style="color:#075e54;">Register here</a>
+        </p>
     </div>
 </body>
 

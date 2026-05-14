@@ -61,9 +61,14 @@ def index():
     
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT id, username FROM users WHERE id != %s", (session['user_id'],))
+    cursor.execute("""
+        SELECT u.id, u.username, u.first_name, u.last_name, u.phone
+        FROM users u
+        JOIN contacts c ON u.id = c.contact_user_id
+        WHERE c.owner_id = %s
+    """, (session['user_id'],))
     users = cursor.fetchall()
-    cursor.execute("SELECT username FROM users WHERE id = %s", (session['user_id'],))
+    cursor.execute("SELECT username, first_name, last_name FROM users WHERE id = %s", (session['user_id'],))
     current_user = cursor.fetchone()
     db.close()
 
@@ -97,6 +102,74 @@ def register():
         return redirect(url_for('index'))
     
     return render_template('register.html')
+
+@app.route('/add_contact', methods=['POST'])
+def add_contact():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    first_name = request.form.get('first_name', '').strip()
+    last_name = request.form.get('last_name', '').strip()
+    phone = request.form.get('phone', '').strip()
+    owner_id = session['user_id']
+
+    if not all([first_name, last_name, phone]):
+        return jsonify({'error': 'All fields are required'}), 400
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT id, first_name, last_name FROM users WHERE phone = %s", (phone,))
+        contact_user = cursor.fetchone()
+
+        if not contact_user:
+            placeholder_username = f"user_{phone}"
+            dummy_hash = "LOCKED_PLACEHOLDER"
+
+            cursor.execute("""INSERT INTO users (username, password_hash, first_name, last_name, phone) VALUES (%s, %s, %s, %s, %s)""", (placeholder_username, dummy_hash, first_name, last_name, phone))
+            db.commit()
+
+            new_contact_id = cursor.lastrowid
+            contact_info = {
+                'id': new_contact_id,
+                'username': placeholder_username,
+                'first_name': first_name,
+                'last_name': last_name
+            }
+        else:
+            new_contact_id = contact_user['id']
+            contact_info = contact_user
+
+        if new_contact_id == owner_id:
+            return jsonify({'error': 'You cannot add yourself'}), 400
+        
+        cursor.execute(
+            "INSERT INTO contacts (owner_id, contact_user_id) VALUES (%s, %s)",
+            (owner_id, new_contact_id)
+        )
+        db.commit()
+        return jsonify({'success': True, 'user': contact_info})
+    
+    except Exception as e:
+        return jsonify({'error': 'Contact already in your list'}), 400
+    finally:
+        db.close()
+
+@app.route('/delete_contact/<int:contact_id>', methods=['POST'])
+def delete_contact(contact_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    owner_id = session['user_id']
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute(
+        "DELETE FROM contacts WHERE owner_id = %s AND contact_user_id = %s", (owner_id, contact_id)
+    )
+    db.commit()
+    db.close()
+    return jsonify({'success': True})
 
 @app.route('/messages/<int:recipient_id>')
 def get_message(recipient_id):

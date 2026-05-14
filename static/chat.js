@@ -179,6 +179,72 @@ function sendMessage() {
         alert("Select a user to chat with");
     }
 }
+
+// ────────────────────── New Contact Panel ────────────────────
+document.getElementById('new-contact-btn').addEventListener('click', () => {
+    document.getElementById('new-contact-panel').style.display = 'flex';
+});
+
+document.getElementById('close-contact-btn').addEventListener('click', () => {
+    document.getElementById('new-contact-panel').style.display = 'none';
+    document.getElementById('contact-phone').value = '';
+    document.getElementById('contact-error').style.display = 'none';
+    document.getElementById('contact-success').style.display = 'none';
+});
+
+document.getElementById('add-contact-btn').addEventListener('click', async () => {
+    const firstName = document.getElementById('contact-firstname').value.trim();
+    const lastName = document.getElementById('contact-lastname').value.trim();
+    const phone = document.getElementById('contact-phone').value.trim();
+
+    const errorCT = document.getElementById('contact-error');
+    const successCT = document.getElementById('contact-success');
+
+    if (!firstName || !lastName || !phone) {
+        errorCT.textContent = 'All fields are required';
+        errorCT.style.display = 'block';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('first_name', firstName);
+    formData.append('last_name', lastName);
+    formData.append('phone', phone);
+
+    try {
+        const res = await fetch('/add_contact', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (data.error) {
+            errorCT.textContent = data.error;
+            errorCT.style.display = 'block';
+            successCT.style.display = 'none';
+        } else {
+            errorCT.style.display = 'none';
+            successCT.textContent = `✅ ${data.user.first_name} ${data.user.last_name} added!`;
+            successCT.style.display = 'block';
+
+            document.getElementById('contact-firstname').value = '';
+            document.getElementById('contact-lastname').value = '';
+            document.getElementById('contact-phone').value = '';
+
+            const chatList = document.querySelector('.chat-list');
+            const div = document.createElement('div');
+            div.className = 'chat-item';
+            div.onclick = () => selectUser(data.user.id, data.user.username);
+            div.innerHTML = `
+                <div class="avatar"></div>
+                <div class="chat-info">
+                    <h4>${data.user.username}</h4>
+                </div>
+            `;
+            chatList.appendChild(div);
+        }
+    } catch (err) {
+        errorCT.textContent = 'Something went wrong';
+        errorCT.style.display = 'block';
+    }
+});
 // ────────────────────── Socket & Event Listeners ────────────────────
 const socket = io();
 
