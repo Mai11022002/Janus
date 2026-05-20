@@ -196,12 +196,17 @@ document.getElementById('add-contact-btn').addEventListener('click', async () =>
     const firstName = document.getElementById('contact-firstname').value.trim();
     const lastName = document.getElementById('contact-lastname').value.trim();
     const phone = document.getElementById('contact-phone').value.trim();
-
     const errorCT = document.getElementById('contact-error');
     const successCT = document.getElementById('contact-success');
 
-    if (!firstName || !lastName || !phone) {
-        errorCT.textContent = 'All fields are required';
+    if (!phone) {
+        errorCT.textContent = 'Phone number is required';
+        errorCT.style.display = 'block';
+        return;
+    }
+
+    if(!firstName && !lastName) {
+        errorCT.textContent = 'At least a first or last name is required';
         errorCT.style.display = 'block';
         return;
     }

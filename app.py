@@ -113,44 +113,54 @@ def add_contact():
     phone = request.form.get('phone', '').strip()
     owner_id = session['user_id']
 
-    if not all([first_name, last_name, phone]):
-        return jsonify({'error': 'All fields are required'}), 400
+    if not phone:
+        return jsonify({'error': 'Phone number is required'}), 400
+    if not first_name and not last_name:
+        return jsonify({'error': 'At least first or last name is required'}), 400
+    
+    if first_name and last_name:
+        display_name = f"{last_name} {first_name}"
+    elif last_name:
+        display_name = last_name
+    else:
+        display_name = first_name
 
+    base_username = display_name.replace(' ', '_')
+    username = base_username
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
+    counter = 1
+    while True:
+        cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+        if not cursor.fetchone():
+            break
+        username = f"{base_username}_{counter}"
+        counter += 1
+
+    cursor.execute("SELECT id FROM users WHERE phone = %s", (phone,))
+    if cursor.fetchone():
+        db.close()
+        return jsonify({'error': 'Phone number already registered'}), 400
     try:
-        cursor.execute("SELECT id, first_name, last_name FROM users WHERE phone = %s", (phone,))
-        contact_user = cursor.fetchone()
+        dummy_hash = "LOCKED_PLACEHOLDER"
+        cursor.execute("""INSERT INTO users (username, password_hash, first_name, last_name, phone) VALUES (%s, %s, %s, %s, %s)""", (username, dummy_hash, first_name, last_name, phone))
+        db.commit()
+        new_user_id = cursor.lastrowid
 
-        if not contact_user:
-            placeholder_username = f"user_{phone}"
-            dummy_hash = "LOCKED_PLACEHOLDER"
-
-            cursor.execute("""INSERT INTO users (username, password_hash, first_name, last_name, phone) VALUES (%s, %s, %s, %s, %s)""", (placeholder_username, dummy_hash, first_name, last_name, phone))
-            db.commit()
-
-            new_contact_id = cursor.lastrowid
-            contact_info = {
-                'id': new_contact_id,
-                'username': placeholder_username,
-                'first_name': first_name,
-                'last_name': last_name
-            }
-        else:
-            new_contact_id = contact_user['id']
-            contact_info = contact_user
-
-        if new_contact_id == owner_id:
+        if new_user_id == owner_id:
             return jsonify({'error': 'You cannot add yourself'}), 400
         
-        cursor.execute(
-            "INSERT INTO contacts (owner_id, contact_user_id) VALUES (%s, %s)",
-            (owner_id, new_contact_id)
-        )
+        cursor.execute("INSERT INTO contacts (owner_id, contact_user_id) VALUES (%s, %s)", (owner_id, new_user_id))
         db.commit()
-        return jsonify({'success': True, 'user': contact_info})
-    
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': new_user_id,
+                'username': username,
+                'display_name': display_name
+            }
+        })
     except Exception as e:
         return jsonify({'error': 'Contact already in your list'}), 400
     finally:
