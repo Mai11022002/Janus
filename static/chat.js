@@ -250,6 +250,70 @@ document.getElementById('add-contact-btn').addEventListener('click', async () =>
         errorCT.style.display = 'block';
     }
 });
+
+// ────────────────────── Dropdown Menu ────────────────────
+function toggleMenu(event, userId) {
+    event.stopPropagation();
+    document.querySelectorAll('.dropdown-menu.open').forEach(menu => {
+        if (menu.id !== `menu-${userId}`) menu.classList.remove('open');
+    });
+    document.getElementById(`menu-${userId}`).classList.toggle('open');
+}
+
+document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown-menu.open').forEach(menu => {
+        menu.classList.remove('open');
+    });
+});
+
+// ────────────────────── Delete Chat ────────────────────
+async function deleteChat(event, contactId) {
+    event.stopPropagation();
+    document.getElementById(`menu-${contactId}`).classList.remove('open');
+
+    if (!confirm('Delete all messages with this contact?')) return;
+
+    try {
+        const res = await fetch(`/delete_chat/${contactId}`, { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success) {
+            if (currentRecipientId == contactId) {
+                document.querySelector('.message-container').innerHTML = '<p class="select-prompt">Select a user to start chatting</p>';
+                currentRecipientId = null;
+                document.querySelector('.chat-details h3').innerHTML = 'Global Chat';
+            }
+        }
+    } catch (err) {
+        console.error('Delete chat failed:', err);
+    }
+}
+
+// ────────────────────── Delete Contact ────────────────────
+async function deleteContact(event, contactId) {
+    event.stopPropagation();
+    document.getElementById(`menu-${contactId}`).classList.remove('open');
+
+    if (!confirm('⚠️ Permanently delete this contact and all their messages? This cannot be undone.')) return;
+
+    try {
+        const res = await fetch(`/delete_contact/${contactId}`, { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success) {
+            if (currentRecipientId == contactId) {
+                document.querySelector('.message-container').innerHTML = '<p class="select-prompt">Select a user to start chatting</p>';
+                currentRecipientId = null;
+                document.querySelector('.chat-details h3').innerHTML = 'Global Chat';
+            }
+            const item = document.querySelector(`[id="menu-${contactId}"]`).closest('.chat-item');
+            item.remove();
+        }
+    } catch (err) {
+        console.error('Delete contact failed:', err);
+    }
+}
+
 // ────────────────────── Socket & Event Listeners ────────────────────
 const socket = io();
 

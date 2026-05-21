@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messenger</title>
+    <title>Janus</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.5.2/dist/browser.js"></script>
 </head>
@@ -42,6 +42,13 @@
                     <div class="avatar"></div>
                     <div class="chat-info">
                         <h4>{{ user.username }}</h4>
+                    </div>
+                    <div class="chat-item-menu">
+                        <button class="menu-trigger" onclick="toggleMenu(event, {{ user.id }})">⋮</button>
+                        <div class="dropdown-menu" id="menu-{{ user.id }}">
+                            <button onclick="deleteChat(event, {{ user.id }})">🗑️ Delete Chat</button>
+                            <button class="danger" onclick="deleteContact(event, {{ user.id }})">⛔ Delete Contact</button>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}

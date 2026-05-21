@@ -181,6 +181,22 @@ def delete_contact(contact_id):
     db.close()
     return jsonify({'success': True})
 
+@app.route('/delete_chat/<int:contact_id>', methods=['POST'])
+def delete_chat(contact_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    sender_id = session['user_id']
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("""
+        DELETE FROM messages
+        WHERE (sender_id = %s AND receiver_id = %s) OR (sender_id = %s AND receiver_id = %s)
+    """, (sender_id, contact_id, contact_id, sender_id))
+    db.commit()
+    db.close()
+    return jsonify({'success': True})
+
 @app.route('/messages/<int:recipient_id>')
 def get_message(recipient_id):
     sender_id = session.get('user_id')
