@@ -1,0 +1,1 @@
+The Janus project is currently under construction, but visitors can try to run it. The visitor can use schema from schema.sql to run the script in MySQL Workbench. Also, the project not use normal html for index.html, but using Jinja, can find it on Market in VSCode and change it on the bottom right icon, to the left of Go Live button
