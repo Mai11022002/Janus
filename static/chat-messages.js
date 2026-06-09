@@ -31,7 +31,7 @@ export function sendMessage() {
             'recipient_id': currentRecipientId,
             'type': 'text'
         });
-        addMessageToScreen(message, 'sent', 'text');
+        addMessageToScreen(message, 'sent', 'text', null, 'sent');
         chatInput.value = '';
     } else if (!currentRecipientId) {
         alert("Select a user to chat with");
@@ -49,7 +49,7 @@ export function sendMediaMessage(url, type) {
         'recipient_id': currentRecipientId,
         'type': type
     });
-    addMessageToScreen(url, 'sent', type);
+    addMessageToScreen(url, 'sent', type, null, 'sent');
     _pickerPanel.style.display = 'none';
 }
 
@@ -74,7 +74,7 @@ async function handlePhotoUpload(e) {
                 'recipient_id': currentRecipientId,
                 'type': 'image'
             });
-            addMessageToScreen(data.url, 'sent', 'image');
+            addMessageToScreen(data.url, 'sent', 'image', null, 'sent');
         }
     } catch (err) {
         console.error("Upload failed:", err);
@@ -87,6 +87,6 @@ function handleReceiveMessage(data) {
     if (data.recipient_id == currentRecipientId || data.sender_id == currentRecipientId) {
         if (parseInt(data.sender_id) !== parseInt(currentRecipientId)) return;
         const msgType = getMessageType(data.message, data.type);
-        addMessageToScreen(data.message, 'received', msgType);
+        addMessageToScreen(data.message, 'received', msgType, null, null);
     }
 }

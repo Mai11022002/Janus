@@ -65,6 +65,13 @@
                     <h3>Global Chat</h3>
                     <span>Online</span>
                 </div>
+                <div class="call-menu-wrapper">
+                    <button id="call-btn" class="call-btn" title="Start a call">📞</button>
+                    <div id="call-dropdown" class="call-dropdown">
+                        <button class="call-option" onclick="startCall('audio')">🎙️ Audio Call</button>
+                        <button class="call-option" onclick="startCall('video')">📹 Video Call</button>
+                    </div>
+                </div>
             </header>
 
             <div class="message-container">
@@ -100,5 +107,17 @@
     </div>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='chat.js') }}"></script>
+    <div id="call-overlay" class="call-overlay" style="display: none;">
+        <div class="call-card">
+            <h2 id="call-status-title">Calling...</h2>
+            <div class="video-grid">
+                <video id="remote-video" autoplay playsinline></video>
+                <video id="local-video" autoplay playsinline muted></video>
+            </div>
+            <div class="call-controls">
+                <button id="hangup-btn" class="hangup-btn">🚫 End Call</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

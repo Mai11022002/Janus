@@ -2,6 +2,7 @@ import * as ui from './chat-ui.js';
 import { initEmojiPicker, loadGifs, loadStickers } from './chat-media.js';
 import { initContactPanel } from './chat-contacts.js';
 import { initMessages, sendMediaMessage } from './chat-messages.js';
+import { initWebRTC, startWebRTCCall } from './chat-rtc.js';
 
 window.selectUser = ui.selectUser;
 window.toggleMenu = ui.toggleMenu;
@@ -16,6 +17,7 @@ const pickerPanel = document.getElementById('picker-panel');
 initEmojiPicker();
 initContactPanel();
 initMessages(socket, pickerPanel);
+initWebRTC(socket);
 
 // ────────────────────── Load contacts ────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -92,3 +94,25 @@ document.getElementById('gif-search').addEventListener('input', (e) => {
     if (query.length > 1) loadGifs(query, sendMediaMessage);
     else loadGifs('trending', sendMediaMessage);
 });
+
+// ────────────────────── Call Button UI ────────────────────
+const callBtn = document.getElementById('call-btn');
+const callDropdown = document.getElementById('call-dropdown');
+
+callBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    callDropdown.classList.toggle('open');
+});
+
+document.addEventListener('click', () => {
+    callDropdown.classList.remove('open');
+});
+
+window.startCall = function(type) {
+    callDropdown.classList.remove('open');
+    if (!ui.currentRecipientId) {
+        alert('Select a contact first');
+        return;
+    }
+    startWebRTCCall(type);
+};

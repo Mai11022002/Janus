@@ -29,7 +29,7 @@ def home():
 @app.route('/index')
 def index():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
     
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -64,6 +64,47 @@ def handle_message(data):
         'sender_id': sender_id,
         'type': message_type
     }, broadcast=True)
+
+# ────────────────────── User Room Management ────────────────────
+@socketio.on('connect')
+def handle_connect():
+    user_id = session.get('user_id')
+    if user_id:
+        from flask_socketio import join_room
+        join_room(str(user_id))
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    user_id = session.get('user_id')
+    if user_id:
+        from flask_socketio import leave_room
+        leave_room(str(user_id))
+
+# ────────────────────── WebRTC Signaling Events ────────────────────
+@socketio.on('call_request')
+def handle_call_request(data):
+    """Forwards an incoming call invitation from Caller to Target Recipient"""
+    sender_id = session.get('user_id')
+    emit('incoming_call', {
+        'sender_id': sender_id,
+        'sender_username': data['sender_username'],
+        'type': data['type']
+    }, to=str(data['target_id']))
+
+@socketio.on('signaling_signal')
+def handle_signaling_signal(data):
+    """Passes SDP offers, answers, and ICE candidates between clients"""
+    sender_id = session.get('user_id')
+    emit('receive_signaling', {
+        'sender_id': sender_id,
+        'target_id': data['target_id'],
+        'signal': data['signal']
+    }, to=str(data['target_id']))
+
+@socketio.on('call_ended')
+def handle_call_ended(data):
+    """Notifies the other party that the connection has broken off"""
+    emit('remote_call_ended', {} , to=str(data['target_id']))
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

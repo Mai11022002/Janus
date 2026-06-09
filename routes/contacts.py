@@ -29,10 +29,36 @@ def add_contact():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
-    cursor.execute("SELECT id FROM users WHERE phone = %s", (phone,))
-    if cursor.fetchone():
-        db.close()
-        return jsonify({'error': 'Phone number already registered'}), 400
+    cursor.execute("SELECT id, username, first_name, last_name FROM users WHERE phone = %s", (phone,))
+    existing_user = cursor.fetchone()
+    
+    if existing_user:
+        new_user_id = existing_user['id']
+        username = existing_user['username'] 
+        first_name = existing_user['first_name']
+        last_name = existing_user['last_name']
+        
+        if new_user_id == owner_id:
+            db.close()
+            return jsonify({'error': 'You cannot add yourself'}), 400
+            
+        try:
+            cursor.execute("INSERT INTO contacts (owner_id, contact_user_id) VALUES (%s, %s)", (owner_id, new_user_id))
+            db.commit()
+            return jsonify({
+                'success': True,
+                'user': {
+                    'id': new_user_id,
+                    'username': username,
+                    'first_name': first_name,
+                    'last_name': last_name
+                }
+            })
+        except Exception as e:
+            return jsonify({'error': 'Contact already in your list'}), 400
+        finally:
+            db.close()
+
     try:
         dummy_hash = "LOCKED_PLACEHOLDER"
         cursor.execute("""INSERT INTO users (username, password_hash, first_name, last_name, phone) VALUES (%s, %s, %s, %s, %s)""", (username, dummy_hash, first_name, last_name, phone))

@@ -32,7 +32,7 @@ body {
   height: 100vh;
   background: var(--marble);
   display: flex;
-  box-shadow: 0 2px 12px rgba(139,0,0,0.15);
+  box-shadow: 0 2px 12px rgba(139, 0, 0, 0.15);
 }
 
 /* Sidebar */
@@ -105,20 +105,16 @@ body {
   flex-direction: column;
   background-color: var(--parchment);
   background-image:
-    repeating-linear-gradient(
-      0deg,
+    repeating-linear-gradient(0deg,
       transparent,
       transparent 28px,
-      rgba(196,168,130,0.15) 28px,
-      rgba(196,168,130,0.15) 29px
-    ),
-    repeating-linear-gradient(
-      90deg,
+      rgba(196, 168, 130, 0.15) 28px,
+      rgba(196, 168, 130, 0.15) 29px),
+    repeating-linear-gradient(90deg,
       transparent,
       transparent 28px,
-      rgba(196,168,130,0.08) 28px,
-      rgba(196,168,130,0.08) 29px
-    );
+      rgba(196, 168, 130, 0.08) 28px,
+      rgba(196, 168, 130, 0.08) 29px);
 }
 
 .message-container {
@@ -238,7 +234,7 @@ body {
   background: var(--marble);
   border-radius: 12px;
   border: 1px solid var(--border);
-  box-shadow: 0 4px 16px rgba(139,0,0,0.2);
+  box-shadow: 0 4px 16px rgba(139, 0, 0, 0.2);
   z-index: 1000;
   overflow: hidden;
 }
@@ -335,7 +331,7 @@ body {
   padding: 40px;
   border-radius: 8px;
   border: 1px solid var(--border);
-  box-shadow: 0 2px 12px rgba(139,0,0,0.15);
+  box-shadow: 0 2px 12px rgba(139, 0, 0, 0.15);
   width: 100%;
   max-width: 400px;
   text-align: center;
@@ -515,7 +511,7 @@ body {
   background: var(--marble);
   border-radius: 8px;
   border: 1px solid var(--border);
-  box-shadow: 0 4px 12px rgba(139,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.15);
   z-index: 200;
   min-width: 160px;
   overflow: hidden;
@@ -554,15 +550,185 @@ body {
   .app-container {
     flex-direction: column;
   }
+
   .sidebar {
     flex: 0 0 auto;
     height: 40vh;
   }
+
   .chat-window {
     flex: 1;
   }
+
   #picker-panel {
     width: 100%;
     left: 0;
   }
+}
+
+/* Call Button */
+.call-menu-wrapper {
+  margin-left: auto;
+  position: relative;
+}
+
+.call-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--gold);
+}
+
+.call-btn:hover {
+  background: rgba(218, 165, 32, 0.15);
+}
+
+.call-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 110%;
+  background: var(--marble);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.15);
+  z-index: 300;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.call-dropdown.open {
+  display: block;
+}
+
+.call-option {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-dark);
+}
+
+.call-option:hover {
+  background: var(--parchment);
+}
+
+/* Roman Tree Status */
+.msg-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.msg-time {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.tree-icon {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+/* Fullscreen Background Dimmer Layer */
+.call-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(44, 36, 22, 0.9); /* Translucent dark stone tone */
+  z-index: 9999; /* Higher than your message container or side panels */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Central Alignment Box for Streams & Controls */
+.call-card {
+  background: var(--marble);
+  border: 3px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  width: 100%;
+  max-width: 900px;
+  box-shadow: 0 8px 32px rgba(139, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Heading for Status Messages */
+#call-status-title {
+  color: var(--crimson);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* Dual Column Video Streaming Rack */
+.video-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+/* Video Elements Styling Constraints */
+.video-grid video {
+  flex: 1 1 400px;
+  max-width: 100%;
+  aspect-ratio: 4 / 3;
+  background-color: var(--stone-dark);
+  border: 2px solid var(--dark-gold);
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+/* Mirror incoming local preview for ease of positioning */
+#local-video {
+  transform: scaleX(-1);
+}
+
+/* Container Wrapper for Buttons */
+.call-controls {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Roman Crimson Termination Trigger Button */
+.hangup-btn {
+  background-color: var(--crimson);
+  color: var(--gold);
+  border: 2px solid var(--gold);
+  padding: 12px 28px;
+  border-radius: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.hangup-btn:hover {
+  background-color: var(--deep-red);
+  transform: scale(1.04);
 }

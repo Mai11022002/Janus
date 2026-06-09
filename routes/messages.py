@@ -17,7 +17,7 @@ def get_message(recipient_id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
-        SELECT sender_id, content, created_at, message_type
+        SELECT sender_id, content, created_at, message_type, status
         FROM messages
         WHERE (sender_id = %s AND receiver_id = %s)
             OR (sender_id = %s AND receiver_id = %s)
@@ -61,6 +61,22 @@ def delete_chat(contact_id):
         DELETE FROM messages
         WHERE (sender_id = %s AND receiver_id = %s) OR (sender_id = %s AND receiver_id = %s)
     """, (sender_id, contact_id, contact_id, sender_id))
+    db.commit()
+    db.close()
+    return jsonify({'success': True})
+
+@messages_bp.route('/status/<int:sender_id>', methods=['POST'])
+def status(sender_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    receiver_id = session['user_id']
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("""
+        UPDATE messages SET status = 'read'
+        WHERE sender_id = %s AND receiver_id = %s AND status != 'read'
+    """, (sender_id, receiver_id))
     db.commit()
     db.close()
     return jsonify({'success': True})
