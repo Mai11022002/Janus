@@ -34,7 +34,7 @@ def index():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
-        SELECT u.id, u.username, u.first_name, u.last_name, u.phone
+        SELECT u.id, u.username, u.first_name, u.last_name, u.phone, u.is_online, u.last_seen
         FROM users u
         JOIN contacts c ON u.id = c.contact_user_id
         WHERE c.owner_id = %s
@@ -73,12 +73,43 @@ def handle_connect():
         from flask_socketio import join_room
         join_room(str(user_id))
 
+        # Update user status to online in the DB
+        db = get_db_connection()
+        cursor = db.cursor()
+        cursor.execute("UPDATE users SET is_online = TRUE WHERE id = %s", (user_id,))
+        db.commit()
+        db.close()
+
+        # Broadcast presence change status to all connected users
+        emit('user_status_change', {
+            'user_id': user_id,
+            'is_online': True,
+            'last_seen': None
+        }, broadcast=True)
+
 @socketio.on('disconnect')
 def handle_disconnect():
     user_id = session.get('user_id')
     if user_id:
         from flask_socketio import leave_room
         leave_room(str(user_id))
+
+        import datetime
+        now = datetime.datetime.now()
+
+        # Update user status to offline and capture timestamp
+        db = get_db_connection()
+        cursor = db.cursor()
+        cursor.execute("UPDATE users SET is_online = FALSE, last_seen = %s WHERE id = %s", (now, user_id,))
+        db.commit()
+        db.close()
+
+        # Broadcast departure information across the pipeline
+        emit('user_status_change', {
+            'user_id': user_id,
+            'is_online': False,
+            'last_seen': now.strftime('%Y-%m-%d %H:%M:%S')
+        }, broadcast=True)
 
 # ────────────────────── WebRTC Signaling Events ────────────────────
 @socketio.on('call_request')

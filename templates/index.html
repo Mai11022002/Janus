@@ -38,8 +38,8 @@
             </div>
             <div class="chat-list">
                 {% for user in users %}
-                <div class="chat-item">
-                    <div class="chat-item-click-zone" onclick="selectUser({{ user.id }}, '{{ user.username }}')" style="display: flex; align-items: center; flex: 1; width: 100%;">
+                <div class="chat-item" id="chat-item-{{ user.id }}" data-is-online="{{ 'true' if user.is_online else 'false' }}" data-last-seen="{{ user.last_seen or '' }}">
+                    <div class="chat-item-click-zone" onclick="selectUser({{ user.id }}, '{{ user.username }}', {{ 'true' if user.is_online else 'false' }}, '{{ user.last_seen or '' }}')" style="display: flex; align-items: center; flex: 1; width: 100%;">
                         <div class="avatar"></div>
                         <div class="chat-info">
                             <h4>{{ user.username }}</h4>
@@ -63,7 +63,7 @@
                 <div class="avatar"></div>
                 <div class="chat-details">
                     <h3>Global Chat</h3>
-                    <span>Online</span>
+                    <span id="header-presence"></span>
                 </div>
                 <div class="call-menu-wrapper">
                     <button id="call-btn" class="call-btn" title="Start a call">📞</button>

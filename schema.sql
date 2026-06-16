@@ -11,7 +11,9 @@ CREATE TABLE users (
     first_name VARCHAR(50),
     last_name VARCHAR(50),
     phone VARCHAR(20) UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_online BOOLEAN DEFAULT FALSE,
+    last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE contacts (
@@ -31,9 +33,8 @@ CREATE TABLE messages (
     content TEXT NOT NULL,
     metadata JSON, 
     message_type VARCHAR(10) DEFAULT 'text',
+    status VARCHAR(10) DEFAULT 'sent',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES users(id),
     FOREIGN KEY (receiver_id) REFERENCES users(id)
 );
-
-INSERT INTO users (username, password_hash, first_name, last_name, phone) VALUES ('Parrot', 'parrot123', 'Parrot', 'User', '+1234567890');

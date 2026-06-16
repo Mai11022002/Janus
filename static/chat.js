@@ -19,6 +19,10 @@ initContactPanel();
 initMessages(socket, pickerPanel);
 initWebRTC(socket);
 
+socket.on('user_status_change', (data) => {
+    ui.updateUserPresenceUI(data.user_id, data.is_online, data.last_seen);
+});
+
 // ────────────────────── Load contacts ────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
     try {

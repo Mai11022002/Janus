@@ -1,9 +1,13 @@
 export let currentRecipientId = null;
+let activeRecipientPresence = { is_online: false, last_seen: null };
 
 // ────────────────────── Select User & Load Chat History ────────────────────
-export async function selectUser(id, username) {
+export async function selectUser(id, username, isOnline, lastSeen) {
     currentRecipientId = id;
+    activeRecipientPresence.is_online = (isOnline === true || isOnline === 1 || isOnline === 'true');
+    activeRecipientPresence.last_seen = lastSeen || null;
     document.querySelector('.chat-details h3').innerText = username;
+    renderHeaderPresence();
     const container = document.querySelector('.message-container');
     container.innerHTML = '';
     console.log("Currently messaging user ID:", id);
@@ -12,12 +16,14 @@ export async function selectUser(id, username) {
         const response = await fetch(`/messages/${id}`);
         const data = await response.json();
 
-        if (data.messages) {
+        if (data.messages && data.messages.length > 0) {
             data.messages.forEach(msg => {
                 const type = (msg.sender_id == id) ? 'received' : 'sent';
                 const msgType = getMessageType(msg.content, msg.message_type);
                 addMessageToScreen(msg.content, type, msgType, msg.created_at, msg.status);
             });
+        } else {
+            container.innerHTML = '<p class="select-prompt">No messages yet. Say hi!</p>';
         }
         await fetch(`/status/${id}`, { method: 'POST' });
     } catch (error) {
@@ -129,7 +135,10 @@ export function renderContactItem(user) {
     const chatList = document.querySelector('.chat-list');
     const div = document.createElement('div');
     div.className = 'chat-item';
-    div.onclick = () => selectUser(user.id, user.username);
+    div.id = `chat-item-${user.id}`;
+    div.onclick = () => selectUser(user.id, user.username, user.is_online, user.last_seen);
+    div.dataset.isOnline = user.is_online;
+    div.dataset.lastSeen = user.last_seen || '';
     div.innerHTML = `
         <div class="avatar"></div>
         <div class="chat-info">
@@ -144,6 +153,53 @@ export function renderContactItem(user) {
         </div>
     `;
     chatList.appendChild(div);
+}
+
+function renderHeaderPresence() {
+    let presenceElement = document.getElementById('header-presence');
+    if(!presenceElement) {
+        const chatDetails = document.querySelector('.chat-details');
+        presenceElement = document.createElement('p');
+        presenceElement.id = 'header-presence';
+        presenceElement.style.fontSize = '12px';
+        presenceElement.style.color = '#777';
+        chatDetails.appendChild(presenceElement);
+    }
+
+    if (activeRecipientPresence.is_online) {
+        presenceElement.innerHTML = "Online";
+    } else if (activeRecipientPresence.last_seen) {
+        presenceElement.innerHTML = `Last seen at ${activeRecipientPresence.last_seen}`;
+    } else {
+        presenceElement.innerHTML = "Offline";
+    }
+}
+
+export function updateUserPresenceUI(userId, isOnline, lastSeen) {
+    const contactRow = document.getElementById(`chat-item-${userId}`);
+    if (contactRow) {
+        contactRow.dataset.isOnline = isOnline;
+        contactRow.dataset.lastSeen = lastSeen || '';
+        const usernameElement = contactRow.querySelector('h4');
+
+        if (usernameElement) {
+            const username = usernameElement.innerText.trim();
+            contactRow.onclick = () => selectUser(userId, username, isOnline, lastSeen);
+            const clickZone = contactRow.querySelector('.chat-item-click-zone');
+            if (clickZone) {
+                clickZone.onclick = (e) => {
+                    e.stopPropagation();
+                    selectUser(userId, username, isOnline, lastSeen);
+                };
+            }
+        }
+    }
+
+    if (currentRecipientId == userId) {
+        activeRecipientPresence.is_online = isOnline;
+        activeRecipientPresence.last_seen = lastSeen;
+        renderHeaderPresence();
+    }
 }
 
 window.selectUser = selectUser;

@@ -29,7 +29,7 @@ def add_contact():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
-    cursor.execute("SELECT id, username, first_name, last_name FROM users WHERE phone = %s", (phone,))
+    cursor.execute("SELECT id, username, first_name, last_name, is_online, last_seen FROM users WHERE phone = %s", (phone,))
     existing_user = cursor.fetchone()
     
     if existing_user:
