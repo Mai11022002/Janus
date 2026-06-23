@@ -2,22 +2,56 @@ import { addMessageToScreen, getMessageType, currentRecipientId } from './chat-u
 
 let _socket = null;
 let _pickerPanel = null;
+let typingTimeout = null;
+let isCurrentlyTyping = false;
+let battleHorn = null;
 
 // ────────────────────── Init ────────────────────
 export function initMessages(socket, pickerPanel) {
     _socket = socket;
     _pickerPanel = pickerPanel;
 
+    battleHorn = new Audio('/static/uploads/roman-horn.mp3');
+    battleHorn.load();
+
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+
     document.getElementById('send-btn').onclick = sendMessage;
 
-    document.getElementById('message-input').addEventListener('keydown', (event) => {
+    const messageInput = document.getElementById('message-input');
+
+    messageInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
             event.preventDefault();
             sendMessage();
         }
     });
+
+    // Debounced Typing Indicator Listener
+    messageInput.addEventListener('input', () => {
+        if (!currentRecipientId) return;
+
+        if (!isCurrentlyTyping) {
+            isCurrentlyTyping = true;
+            _socket.emit('typing_status', { 'recipient_id': currentRecipientId, 'is_typing': true });
+        }
+
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            isCurrentlyTyping = false;
+            _socket.emit('typing_status', { 'recipient_id': currentRecipientId, 'is_typing': false });
+        }, 1500);
+    });
+
     document.getElementById('photo-upload').addEventListener('change', handlePhotoUpload);
     _socket.on('receive_message', handleReceiveMessage);
+
+    // Listen for typing updates from backend
+    _socket.on('display_typing', (data) => {
+        import('./chat-ui.js').then(ui => ui.handleTypingUI(data));
+    });
 }
 
 // ────────────────────── Send Text Message ────────────────────
@@ -88,5 +122,20 @@ function handleReceiveMessage(data) {
         if (parseInt(data.sender_id) !== parseInt(currentRecipientId)) return;
         const msgType = getMessageType(data.message, data.type);
         addMessageToScreen(data.message, 'received', msgType, null, null);
+    }
+
+    // Trigger Native HTML5 Web Notification if browser tab is backgrounded
+    if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+
+        if (battleHorn) {
+            battleHorn.currentTime = 0;
+            battleHorn.play().catch(err => console.log("Browser blocked sound audio track playback:", err));
+        }
+
+        new Notification(`New message from ${data.sender_username}`, {
+            body: data.type === 'text' ? data.message : 'Sent an attachment',
+            icon: '/static/uploads/roman-flag.png',
+            silent: true
+        });
     }
 }

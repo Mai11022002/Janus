@@ -52,16 +52,22 @@ def handle_message(data):
     message_type = data.get('type', 'text')
 
     db = get_db_connection()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
     sql = "INSERT INTO messages (sender_id, receiver_id, content, message_type) VALUES (%s, %s, %s, %s)"
     cursor.execute(sql, (sender_id, data['recipient_id'], data['message'], message_type))
     db.commit()
+
+    # Fetch the sender's username for the notification
+    cursor.execute("SELECT username FROM users WHERE id = %s", (sender_id,))
+    sender_info = cursor.fetchone()
+    sender_username = sender_info['username'] if sender_info else f"User {sender_id}"
     db.close()
 
     emit('receive_message', {
         'message': data['message'],
         'recipient_id': data['recipient_id'],
         'sender_id': sender_id,
+        'sender_username': sender_username,
         'type': message_type
     }, broadcast=True)
 
@@ -110,6 +116,22 @@ def handle_disconnect():
             'is_online': False,
             'last_seen': now.strftime('%Y-%m-%d %H:%M:%S')
         }, broadcast=True)
+
+# ────────────────────── Typing Indicator Events ────────────────────
+@socketio.on('typing_status')
+def handle_typing_status(data):
+    sender_id = session.get('user_id')
+    recipient_id = data.get('recipient_id')
+    is_typing = data.get('is_typing', False)
+
+    sender_username = session.get('username', f"User {sender_id}")
+
+    if sender_id and recipient_id:
+        emit('display_typing', {
+            'sender_id': sender_id,
+            'sender_username': sender_username,
+            'is_typing': is_typing
+        }, to=str(recipient_id))
 
 # ────────────────────── WebRTC Signaling Events ────────────────────
 @socketio.on('call_request')

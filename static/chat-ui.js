@@ -1,5 +1,6 @@
 export let currentRecipientId = null;
 let activeRecipientPresence = { is_online: false, last_seen: null };
+let typingUsers = {};
 
 // ────────────────────── Select User & Load Chat History ────────────────────
 export async function selectUser(id, username, isOnline, lastSeen) {
@@ -166,12 +167,35 @@ function renderHeaderPresence() {
         chatDetails.appendChild(presenceElement);
     }
 
+    if (currentRecipientId && typingUsers.has(parseInt(currentRecipientId))) {
+        const typingName = typingUsers[parseInt(currentRecipientId)];
+        presenceElement.innerHTML = `<em>${typingName} is typing...</em>`;
+        presenceElement.style.color = '#2e7d32';
+        return;
+    }
+
+    presenceElement.style.color = '#777';
     if (activeRecipientPresence.is_online) {
         presenceElement.innerHTML = "Online";
     } else if (activeRecipientPresence.last_seen) {
         presenceElement.innerHTML = `Last seen at ${activeRecipientPresence.last_seen}`;
     } else {
         presenceElement.innerHTML = "Offline";
+    }
+}
+
+// ────────────────────── Dynamic Hook Exporter ────────────────────
+export function handleTypingUI(data) {
+    const typingId = parseInt(data.sender_id);
+
+    if (data.is_typing) {
+        typingUsers[typingId] = data.sender_username || "Someone";
+    } else {
+        delete typingUsers[typingId];
+    }
+
+    if (currentRecipientId == typingId) {
+        renderHeaderPresence();
     }
 }
 
