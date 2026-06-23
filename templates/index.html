@@ -14,8 +14,22 @@
             <header class="user-profile">
                 <div class="avatar"></div>
                 <span style="font-weight: bold; font-size: 14px;">{{ current_user.username }}</span>
-                <button id="new-contact-btn" class="new-contact-btn" title="New Contact">✏️</button>
-                <a href="/logout" class="logout-btn">Logout</a>
+                <button id="new-contact-btn" class="new-contact-btn" title="New Contact">+</button>
+
+                <div class="profile-menu-container">
+                    <button class="profile-menu-trigger" id="profile-menu-btn">⋮</button>
+                    <div class="profile-dropdown-menu" id="profile-dropdown">
+                        <button onclick="alert('New Group coming soon!')">👥 New group</button>
+                        <button onclick="alert('Starred Messages coming soon!')">⭐ Starred messages</button>
+                        <button onclick="alert('Select Chats coming soon!')">✅ Select chats</button>
+                        <button onclick="alert('Mark all as read coming soon!')">📩 Mark all as read</button>
+                        <hr class="dropdown-divider">
+                        <button onclick="alert('App Lock coming soon!')">🔒 App lock</button>
+                        <a href="/logout" class="profile-dropdown-item-link">
+                            <button class="danger">🚪 Log out</button>
+                        </a>
+                    </div>
+                </div>
             </header>
 
             <!-- New Contact Panel -->

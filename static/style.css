@@ -732,3 +732,84 @@ body {
   background-color: var(--deep-red);
   transform: scale(1.04);
 }
+
+/* Profile Action Dropdown System */
+.profile-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-menu-trigger {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--gold);
+  padding: 4px 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.profile-menu-trigger:hover {
+  background-color: rgba(218, 165, 32, 0.12);
+}
+
+.profile-dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 110%;
+  background: var(--stone-dark);
+  border: 1px solid var(--dark-gold);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  min-width: 190px;
+  padding: 4px 0;
+}
+
+.profile-dropdown-menu.open {
+  display: block;
+}
+
+.profile-dropdown-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13.5px;
+  cursor: pointer;
+  color: var(--sandstone);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.profile-dropdown-menu button:hover {
+  background-color: rgba(218, 165, 32, 0.15);
+  color: var(--gold);
+}
+
+.profile-dropdown-menu button.danger {
+  color: #ff6b6b;
+}
+
+.profile-dropdown-menu button.danger:hover {
+  background-color: rgba(139, 0, 0, 0.4);
+  color: #ff8787;
+}
+
+.profile-dropdown-item-link {
+  text-decoration: none;
+  display: block;
+  width: 100%;
+}
+
+.dropdown-divider {
+  border: 0;
+  border-top: 1px solid rgba(214, 196, 160, 0.2);
+  margin: 4px 0;
+}

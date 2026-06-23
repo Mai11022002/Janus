@@ -226,6 +226,37 @@ export function updateUserPresenceUI(userId, isOnline, lastSeen) {
     }
 }
 
+// ────────────────────── Profile Header Menu Handlers ────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    const profileMenuBtn = document.getElementById('profile-menu-btn');
+    const profileDropdown = document.getElementById('profile-dropdown');
+
+    if (profileMenuBtn && profileDropdown) {
+        profileMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Close active target contact row items if open
+            document.querySelectorAll('.dropdown-menu.open').forEach(menu => {
+                menu.classList.remove('open');
+            });
+            profileDropdown.classList.toggle('open');
+        });
+    }
+
+    // Capture global clicks outside active context elements to dismiss components
+    document.addEventListener('click', (e) => {
+        if (profileDropdown && !profileDropdown.contains(e.target) && e.target !== profileMenuBtn) {
+            profileDropdown.classList.remove('open');
+        }
+        
+        // Also close message contact contextual lists safely
+        if (!e.target.classList.contains('menu-trigger')) {
+            document.querySelectorAll('.dropdown-menu.open').forEach(menu => {
+                menu.classList.remove('open');
+            });
+        }
+    });
+});
+
 window.selectUser = selectUser;
 window.toggleMenu = toggleMenu;
 window.deleteChat = deleteChat;
