@@ -40,36 +40,66 @@ def index():
         WHERE c.owner_id = %s
     """, (session['user_id'],))
     users = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT g.id, g.name, g.created_by
+        FROM chat_groups g
+        JOIN group_members gm ON g.id = gm.group_id
+        WHERE gm.user_id = %s
+    """, (session['user_id'],))
+    groups = cursor.fetchall()
     cursor.execute("SELECT username, first_name, last_name FROM users WHERE id = %s", (session['user_id'],))
     current_user = cursor.fetchone()
     db.close()
 
-    return render_template('index.html', users=users, current_user=current_user)
+    return render_template('index.html', users=users, groups=groups, current_user=current_user)
 
 @socketio.on('send_message')
 def handle_message(data):
     sender_id = session.get('user_id')
     message_type = data.get('type', 'text')
+    recipient_target = data.get('recipient_id')
 
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-    sql = "INSERT INTO messages (sender_id, receiver_id, content, message_type) VALUES (%s, %s, %s, %s)"
-    cursor.execute(sql, (sender_id, data['recipient_id'], data['message'], message_type))
-    db.commit()
 
     # Fetch the sender's username for the notification
     cursor.execute("SELECT username FROM users WHERE id = %s", (sender_id,))
     sender_info = cursor.fetchone()
     sender_username = sender_info['username'] if sender_info else f"User {sender_id}"
-    db.close()
 
-    emit('receive_message', {
-        'message': data['message'],
-        'recipient_id': data['recipient_id'],
-        'sender_id': sender_id,
-        'sender_username': sender_username,
-        'type': message_type
-    }, broadcast=True)
+    if isinstance(recipient_target, str) and recipient_target.startswith('group-'):
+        group_id = int(recipient_target.replace('group-', ''))
+        sql = "INSERT INTO messages (sender_id, group_id, content, message_type) VALUES (%s, %s, %s, %s)"
+        cursor.execute(sql, (sender_id, group_id, data['message'], message_type))
+        db.commit()
+        db.close()
+
+        emit('receive_message', {
+            'message': data['message'],
+            'recipient_id': recipient_target,
+            'sender_id': sender_id,
+            'sender_username': sender_username,
+            'type': message_type,
+            'is_group': True
+        }, broadcast=True)
+    else:
+        sql = "INSERT INTO messages (sender_id, receiver_id, content, message_type) VALUES (%s, %s, %s, %s)"
+        cursor.execute(sql, (sender_id, int(recipient_target), data['message'], message_type))
+        db.commit()
+        db.close()
+
+        payload = {
+            'message': data['message'],
+            'recipient_id': int(data['recipient_id']),
+            'sender_id': sender_id,
+            'sender_username': sender_username,
+            'type': message_type,
+            'is_group': False
+        }
+
+        emit('receive_message', payload, to=str(recipient_target))
+        emit('receive_message', payload, to=str(sender_id))
 
 # ────────────────────── User Room Management ────────────────────
 @socketio.on('connect')

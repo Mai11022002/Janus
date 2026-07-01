@@ -29,21 +29,115 @@ document.addEventListener('DOMContentLoaded', async () => {
         const userRes = await fetch('/api/current_user');
         const userData = await userRes.json();
         if (userData.username) {
-            document.getElementById('current-user-display').textContent = userData.username;
+            const userDisplay = document.getElementById('current-user-display');
+            if (userDisplay) {
+                userDisplay.textContent = userData.username;
+            }
         }
+    } catch (err) {
+        console.error("Initialization failed:", err);
+    }
 
+    try {
         const contactsRes = await fetch('/api/contacts');
         const contactsData = await contactsRes.json();
         const chatList = document.querySelector('.chat-list');
-        chatList.innerHTML = '';
 
-        if (contactsData.users) {
+        if (contactsData && contactsData.users && chatList) {
+            chatList.innerHTML = '';
             contactsData.users.forEach(user => {
                 ui.renderContactItem(user);
             });
         }
     } catch (err) {
         console.error("Initialization failed:", err);
+    }
+    const profileNewGroupBtn = document.getElementById('profile-new-group-btn');
+    const groupModalOverlay = document.getElementById('group-modal-overlay');
+    const closeGroupModalBtn = document.getElementById('close-group-modal-btn');
+    const cancelGroupBtn = document.getElementById('cancel-group-btn');
+    const submitGroupBtn = document.getElementById('submit-group-btn');
+    const checklistContainer = document.getElementById('group-contacts-checklist');
+
+    if (profileNewGroupBtn) {
+        profileNewGroupBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            document.getElementById('profile-dropdown').classList.remove('open');
+
+            try {
+                checklistContainer.innerHTML = '';
+                const contactItems = document.querySelectorAll('.chat-list .chat-item');
+
+                if (contactItems.length > 0) {
+                    contactItems.forEach(item => {
+                        if (item.id.startsWith('chat-item-group-')) return;
+                        const userId = item.id.replace('chat-item-', '');
+                        const usernameElement = item.querySelector('.chat-info h4');
+                        const username = usernameElement ? usernameElement.textContent.trim() : '';
+
+                        if (userId && username) {
+                            const label = document.createElement('label');
+                            label.className = 'checklist-item';
+                            label.innerHTML = `
+                                <div class="checklist-item-info">
+                                    <span>${username}</span>
+                                </div>
+                                <input type="checkbox" class="checklist-checkbox" value="${userId}">
+                            `;
+                            checklistContainer.appendChild(label);
+                        }
+                    });
+                } 
+
+                if (checklistContainer.children.length === 0) {
+                    checklistContainer.innerHTML = '<p class="no-contacts-msg">No existing contacts available.</p>';
+                }
+                groupModalOverlay.classList.add('active');
+            } catch (err) {
+                console.error("Failed to load contacts for group creation:", err);
+            }
+        });
+    }
+    const closeGroupModal = () => {
+        groupModalOverlay.classList.remove('active');
+        document.getElementById('group-name-input').value = '';
+        document.getElementById('group-creation-error').style.display = 'none';
+    };
+    if (closeGroupModalBtn) closeGroupModalBtn.addEventListener('click', closeGroupModal);
+    if (cancelGroupBtn) cancelGroupBtn.addEventListener('click', closeGroupModal);
+    if (submitGroupBtn) {
+        submitGroupBtn.addEventListener('click', async () => {
+            const groupName = document.getElementById('group-name-input').value.trim();
+            const errorElement = document.getElementById('group-creation-error');
+
+            if (!groupName) {
+                errorElement.textContent = "Group name cannot be empty!";
+                errorElement.style.display = "block";
+                return;
+            }
+            const selectedCheckboxes = checklistContainer.querySelectorAll('.checklist-checkbox:checked');
+            const memberIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
+
+            try {
+                const response = await fetch('/groups/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: groupName, members: memberIds })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    closeGroupModal();
+                    window.location.reload();
+                } else {
+                    errorElement.textContent = result.error || "Failed to build group.";
+                    errorElement.style.display = "block";
+                }
+            } catch (err) {
+                errorElement.textContent = "Error during request.";
+                errorElement.style.display = "block";
+            }
+        });
     }
 });
 

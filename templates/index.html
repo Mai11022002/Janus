@@ -19,7 +19,7 @@
                 <div class="profile-menu-container">
                     <button class="profile-menu-trigger" id="profile-menu-btn">⋮</button>
                     <div class="profile-dropdown-menu" id="profile-dropdown">
-                        <button onclick="alert('New Group coming soon!')">👥 New group</button>
+                        <button id="profile-new-group-btn">👥 New group</button>
                         <button onclick="alert('Starred Messages coming soon!')">⭐ Starred messages</button>
                         <button onclick="alert('Select Chats coming soon!')">✅ Select chats</button>
                         <button onclick="alert('Mark all as read coming soon!')">📩 Mark all as read</button>
@@ -68,7 +68,24 @@
                     </div>
                 </div>
                 {% endfor %}
-            </div>
+                {% for group in groups %}
+                <div class="chat-item" id="chat-item-group-{{ group.id }}">
+                    <div class="chat-item-click-zone" onclick="selectUser('group-{{ group.id }}', '{{ group.name }}', false, null)" style="display: flex; align-items: center; flex: 1; width: 100%;">
+                        <div class="avatar group-avatar"></div>
+                        <div class="chat-info">
+                            <h4>{{ group.name }}</h4>
+                        </div>
+                    </div>
+                    <div class="chat-item-menu">
+                        <button class="menu-trigger" onclick="toggleMenu(event, 'group-{{ group.id }}')">⋮</button>
+                        <div class="dropdown-menu" id="menu-group-{{ group.id }}">
+                            <button onclick="manageGroupMemberPrompt(event, {{ group.id }}, 'add')">➕ Add Member</button>
+                            <button class="danger" onclick="manageGroupMemberPrompt(event, {{ group.id }}, 'kick')">🥾 Kick Member</button>
+                            <button class="danger" onclick="deleteGroup(event, {{ group.id }})">🗑️ Delete Group</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
         </aside>
 
         <!-- Main Chat Window -->
@@ -130,6 +147,26 @@
             </div>
             <div class="call-controls">
                 <button id="hangup-btn" class="hangup-btn">🚫 End Call</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="group-modal-overlay" class="modal-overlay">
+        <div class="group-modal-card">
+            <div class="group-modal-card">
+                <h3>Create New Group</h3>
+                <button id="close-group-modal-btn" class="close-modal-x">&times;</button>
+            </div>
+            <div class="group-modal-body">
+                <p id="group-creation-error" class="error"></p>
+                <input type="text" id="group-name-input" placeholder="Enter group name...">
+                <h4>Select Contacts to Add</h4>
+                <div id="group-contacts-checklist" class="contacts-checklist">
+                </div>
+            </div>
+            <div class="group-modal-footer">
+                <button id="cancel-group-btn" class="btn-secondary">Cancel</button>
+                <button id="submit-group-btn" class="btn-primary">Create Group</button>
             </div>
         </div>
     </div>

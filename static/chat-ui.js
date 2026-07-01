@@ -5,28 +5,56 @@ let typingUsers = {};
 // ────────────────────── Select User & Load Chat History ────────────────────
 export async function selectUser(id, username, isOnline, lastSeen) {
     currentRecipientId = id;
-    activeRecipientPresence.is_online = (isOnline === true || isOnline === 1 || isOnline === 'true');
-    activeRecipientPresence.last_seen = lastSeen || null;
+    const isGroupChat = typeof id === 'string' && id.startsWith('group-');
+
+    const presenceElement = document.getElementById('header-presence') || document.querySelector('.chat-details span');
     document.querySelector('.chat-details h3').innerText = username;
-    renderHeaderPresence();
+
+    if (isGroupChat) {
+        activeRecipientPresence.is_online = false;
+        activeRecipientPresence.last_seen = null;
+        if (presenceElement) presenceElement.innerHTML = "Group Active Chat";
+    } else {
+        activeRecipientPresence.is_online = (isOnline === true || isOnline === 1 || isOnline === 'true');
+        activeRecipientPresence.last_seen = lastSeen || null;
+        renderHeaderPresence();
+    }
     const container = document.querySelector('.message-container');
     container.innerHTML = '';
-    console.log("Currently messaging user ID:", id);
+    console.log("Currently messaging target ID:", id);
 
     try {
-        const response = await fetch(`/messages/${id}`);
+        const fetchUrl = isGroupChat ? `/messages/group/${id.replace('group-', '')}` : `/messages/${id}`;
+        const response = await fetch(fetchUrl);
         const data = await response.json();
 
         if (data.messages && data.messages.length > 0) {
+            const currentUserIdElement = document.getElementById('current-user-display') || document.querySelector('.user-profile span');
+            const currentProfileName = currentUserIdElement ? currentUserIdElement.innerText.trim() : '';
+
             data.messages.forEach(msg => {
-                const type = (msg.sender_id == id) ? 'received' : 'sent';
-                const msgType = getMessageType(msg.content, msg.message_type);
-                addMessageToScreen(msg.content, type, msgType, msg.created_at, msg.status);
+                let type = 'received';
+                let contentDisplay = msg.content;
+                if (msg.sender_username) {
+                    if (msg.sender_username === currentProfileName) {
+                        type = 'sent';
+                    } else {
+                        type = 'received';
+                        contentDisplay = `<strong>${msg.sender_username}:</strong> ${msg.content}`;
+                    }
+                } else {
+                    type = (msg.sender_id == id) ? 'received' : 'sent';
+                }
+                const msgType = getMessageType(contentDisplay, msg.message_type);
+                addMessageToScreen(contentDisplay, type, msgType, msg.created_at, msg.status);
             });
         } else {
             container.innerHTML = '<p class="select-prompt">No messages yet. Say hi!</p>';
         }
-        await fetch(`/status/${id}`, { method: 'POST' });
+
+        if (!isGroupChat) {
+            await fetch(`/status/${id}`, { method: 'POST' });
+        }
     } catch (error) {
         console.error("Error fetching messages:", error);
     }
@@ -167,7 +195,7 @@ function renderHeaderPresence() {
         chatDetails.appendChild(presenceElement);
     }
 
-    if (currentRecipientId && typingUsers.has(parseInt(currentRecipientId))) {
+    if (currentRecipientId && typingUsers[parseInt(currentRecipientId)]) {
         const typingName = typingUsers[parseInt(currentRecipientId)];
         presenceElement.innerHTML = `<em>${typingName} is typing...</em>`;
         presenceElement.style.color = '#2e7d32';
@@ -257,7 +285,72 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// ────────────────────── Group Member Management ────────────────────
+export async function manageGroupMemberPrompt(event, groupId, action) {
+    event.stopPropagation();
+    document.getElementById(`menu-group-${groupId}`).classList.remove('open');
+
+    const promptMsg = action === 'add' 
+        ? 'Enter the User ID of the contact you want to ADD to this group:' 
+        : 'Enter the User ID of the member you want to KICK from this group:';
+        
+    const targetUserId = prompt(promptMsg);
+    if (!targetUserId || isNaN(targetUserId)) {
+        if (targetUserId) alert('Please provide a valid numeric User ID.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/groups/${groupId}/manage_member`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: action,
+                user_id: parseInt(targetUserId)
+            })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`Successfully execution complete: User was ${action === 'add' ? 'added to' : 'kicked from'} the group.`);
+        } else {
+            alert(`Operation failed: ${data.error || 'Unknown error occurred.'}`);
+        }
+    } catch (err) {
+        console.error('Group member modification failed:', err);
+        alert('Server network communication failure.');
+    }
+}
+
+export async function deleteGroup(event, groupId) {
+    event.stopPropagation();
+    const menu = document.getElementById(`menu-group-${groupId}`);
+    if (menu) menu.classList.remove('open');
+    if (!confirm('Are you sure you want to delete this group?')) return;
+    try {
+        const response = await fetch(`/groups/${groupId}/delete`, {
+            method: 'POST' 
+        });
+        const data = await response.json();
+        if (data.success) {
+            if (typeof currentRecipientId !== 'undefined' && currentRecipientId === `group-${groupId}`) {
+                const container = document.querySelector('.message-container');
+                if (container) {
+                    container.innerHTML = '<p class="select-prompt">Select a user to start chatting</p>';
+                }
+                currentRecipientId = null;
+            }
+            window.location.reload();
+        } else {
+            alert(`Error: ${data.error}`);
+        }
+    } catch (err) {
+        console.error('Delete group fetch request failed:', err);
+    }
+}
 window.selectUser = selectUser;
 window.toggleMenu = toggleMenu;
 window.deleteChat = deleteChat;
 window.deleteContact = deleteContact;
+window.manageGroupMemberPrompt = manageGroupMemberPrompt;
+window.deleteGroup = deleteGroup;

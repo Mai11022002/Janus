@@ -118,21 +118,36 @@ async function handlePhotoUpload(e) {
 
 // ────────────────────── Receive Message ────────────────────
 function handleReceiveMessage(data) {
-    if (data.recipient_id == currentRecipientId || data.sender_id == currentRecipientId) {
-        if (parseInt(data.sender_id) !== parseInt(currentRecipientId)) return;
-        const msgType = getMessageType(data.message, data.type);
-        addMessageToScreen(data.message, 'received', msgType, null, null);
+    const isGroupMsg = data.is_group || (typeof data.recipient_id === 'string' && data.recipient_id.startsWith('group-'));
+    const userDisplayEl = document.getElementById('current-user-display') || document.querySelector('.user-profile span') || document.querySelector('.profile-nav h3');
+    const currentProfileName = userDisplayEl ? userDisplayEl.textContent.trim() : '';
+
+    if (isGroupMsg) {
+        if (data.recipient_id == currentRecipientId) {
+            const isMe = (data.sender_username === currentProfileName);
+            if (isMe) return;
+            const msgType = getMessageType(data.message, data.type);
+            const contentDisplay = `<strong>${data.sender_username}:</strong> ${data.message}`;
+            addMessageToScreen(contentDisplay, 'received', msgType, null, null);
+        }
+    } else {
+        if (data.recipient_id == currentRecipientId || data.sender_id == currentRecipientId) {
+            if (data.sender_username === currentProfileName) return;
+            if (parseInt(data.sender_id) !== parseInt(currentRecipientId) && parseInt(data.recipient_id) !== parseInt(currentRecipientId)) return;
+            const msgType = getMessageType(data.message, data.type);
+            addMessageToScreen(data.message, 'received', msgType, null, null);
+        }
     }
 
     // Trigger Native HTML5 Web Notification if browser tab is backgrounded
     if (document.hidden && "Notification" in window && Notification.permission === "granted") {
-
         if (battleHorn) {
             battleHorn.currentTime = 0;
             battleHorn.play().catch(err => console.log("Browser blocked sound audio track playback:", err));
         }
 
-        new Notification(`New message from ${data.sender_username}`, {
+        const notificationTitle = isGroupMsg ? `Group update in room` : `New message from ${data.sender_username}`;
+        new Notification(notificationTitle, {
             body: data.type === 'text' ? data.message : 'Sent an attachment',
             icon: '/static/uploads/roman-flag.png',
             silent: true
