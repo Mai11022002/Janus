@@ -52,7 +52,7 @@
             </div>
             <div class="chat-list">
                 {% for user in users %}
-                <div class="chat-item" id="chat-item-{{ user.id }}" data-is-online="{{ 'true' if user.is_online else 'false' }}" data-last-seen="{{ user.last_seen or '' }}">
+                <div class="chat-item{{ ' blocked-contact' if user.blocked else '' }}" id="chat-item-{{ user.id }}" data-is-online="{{ 'true' if user.is_online else 'false' }}" data-last-seen="{{ user.last_seen or '' }}">
                     <div class="chat-item-click-zone" onclick="selectUser({{ user.id }}, '{{ user.username }}', {{ 'true' if user.is_online else 'false' }}, '{{ user.last_seen or '' }}')" style="display: flex; align-items: center; flex: 1; width: 100%;">
                         <div class="avatar"></div>
                         <div class="chat-info">
@@ -63,6 +63,7 @@
                         <button class="menu-trigger" onclick="toggleMenu(event, {{ user.id }})">⋮</button>
                         <div class="dropdown-menu" id="menu-{{ user.id }}">
                             <button onclick="deleteChat(event, {{ user.id }})">🗑️ Delete Chat</button>
+                            <button class="block-btn block" onclick="toggleBlockContact(event, {{ user.id }})">{{ '✅ Unblock User' if user.blocked else '🚫 Block User' }}</button>
                             <button class="danger" onclick="deleteContact(event, {{ user.id }})">⛔ Delete Contact</button>
                         </div>
                     </div>

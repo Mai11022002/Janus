@@ -48,6 +48,14 @@ export function initMessages(socket, pickerPanel) {
     document.getElementById('photo-upload').addEventListener('change', handlePhotoUpload);
     _socket.on('receive_message', handleReceiveMessage);
 
+    _socket.on('message_blocked', (data) => {
+        if (data.reason === 'you_blocked_them') {
+            alert("You've blocked this user. Unblock them to send messages.");
+        } else if (data.reason === 'blocked_contact_attempted') {
+            alert("A contact you blocked just tried to message you.");
+        }
+    });
+
     // Listen for typing updates from backend
     _socket.on('display_typing', (data) => {
         import('./chat-ui.js').then(ui => ui.handleTypingUI(data));

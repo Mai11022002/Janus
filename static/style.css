@@ -545,6 +545,27 @@ body {
   background-color: #f5e6e6;
 }
 
+.dropdown-menu button.block {
+  color: #b8860b;
+}
+
+.dropdown-menu button.block:hover {
+  background-color: #fdf1dc;
+}
+
+.blocked-contact {
+  opacity: 0.5;
+}
+
+.blocked-contact h4 {
+  color: var(--text-dark);
+  text-decoration: line-through;
+}
+
+.blocked-contact:hover {
+  background-color: var(--parchment);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .app-container {

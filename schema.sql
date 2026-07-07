@@ -23,6 +23,7 @@ CREATE TABLE contacts (
     owner_id INT NOT NULL,
     contact_user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    blocked BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (owner_id) REFERENCES users(id),
     FOREIGN KEY (contact_user_id) REFERENCES users(id),
     UNIQUE KEY unique_contact (owner_id, contact_user_id)

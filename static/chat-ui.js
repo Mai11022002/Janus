@@ -136,6 +136,25 @@ export async function deleteChat(event, contactId) {
     }
 }
 
+export async function toggleBlockContact(event, contactId) {
+    event.stopPropagation();
+    document.getElementById(`menu-${contactId}`).classList.remove('open');
+
+    try {
+        const res = await fetch(`/block_contact/${contactId}`, { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success) {
+            const item = document.getElementById(`chat-item-${contactId}`);
+            const btn = document.querySelector(`#menu-${contactId} .block-btn`);
+            item.classList.toggle('blocked-contact', data.blocked);
+            btn.textContent = data.blocked ? '✅ Unblock User' : '🚫 Block User';
+        }
+    } catch (err) {
+        console.error('Block contact failed:', err);
+    }
+}
+
 export async function deleteContact(event, contactId) {
     event.stopPropagation();
     document.getElementById(`menu-${contactId}`).classList.remove('open');
@@ -177,6 +196,7 @@ export function renderContactItem(user) {
             <button class="menu-trigger" onclick="toggleMenu(event, ${user.id})">⋮</button>
             <div class="dropdown-menu" id="menu-${user.id}">
                 <button onclick="deleteChat(event, ${user.id})">🗑️ Delete Chat</button>
+                <button class="block-btn" onclick="toggleBlockContact(event, ${user.id})">🚫 Block User</button>
                 <button class="danger" onclick="deleteContact(event, ${user.id})">⛔ Delete Contact</button>
             </div>
         </div>

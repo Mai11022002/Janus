@@ -8,6 +8,7 @@ window.selectUser = ui.selectUser;
 window.toggleMenu = ui.toggleMenu;
 window.deleteChat = ui.deleteChat;
 window.deleteContact = ui.deleteContact;
+window.toggleBlockContact = ui.toggleBlockContact;
 
 // ────────────────────── DOM References ────────────────────
 const socket = io();

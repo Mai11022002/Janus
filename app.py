@@ -34,7 +34,7 @@ def index():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
-        SELECT u.id, u.username, u.first_name, u.last_name, u.phone, u.is_online, u.last_seen
+        SELECT u.id, u.username, u.first_name, u.last_name, u.phone, u.is_online, u.last_seen, c.blocked
         FROM users u
         JOIN contacts c ON u.id = c.contact_user_id
         WHERE c.owner_id = %s
@@ -84,14 +84,42 @@ def handle_message(data):
             'is_group': True
         }, broadcast=True)
     else:
+        recipient_id = int(recipient_target)
+        cursor.execute("""
+            SELECT owner_id, blocked FROM contacts
+            WHERE (owner_id = %s AND contact_user_id = %s)
+                OR (owner_id = %s AND contact_user_id = %s)
+        """, (sender_id, recipient_id, recipient_id, sender_id))
+        block_rows = cursor.fetchall()
+        db.close()
+
+        sender_blocked_recipient = any(r['blocked'] and r['owner_id'] == sender_id for r in block_rows)
+        recipient_blocked_sender = any(r['blocked'] and r['owner_id'] == recipient_id for r in block_rows)
+
+        if sender_blocked_recipient:
+            emit('message_blocked', {
+                'recipient_id': recipient_id,
+                'reason': 'you_blocked_them'
+            }, to=str(sender_id))
+            return
+        
+        if recipient_blocked_sender:
+            emit('message_blocked', {
+                'sender_id': sender_id,
+                'reason': 'blocked_contact_attempted'
+            }, to=str(recipient_id))
+            return
+        
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
         sql = "INSERT INTO messages (sender_id, receiver_id, content, message_type) VALUES (%s, %s, %s, %s)"
-        cursor.execute(sql, (sender_id, int(recipient_target), data['message'], message_type))
+        cursor.execute(sql, (sender_id, recipient_id, data['message'], message_type))
         db.commit()
         db.close()
 
         payload = {
             'message': data['message'],
-            'recipient_id': int(data['recipient_id']),
+            'recipient_id': recipient_id,
             'sender_id': sender_id,
             'sender_username': sender_username,
             'type': message_type,
