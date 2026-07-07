@@ -115,3 +115,39 @@ def delete_contact(contact_id):
         return jsonify({'error': 'Failed to permanently delete contact data'}), 500
     finally:
         db.close()
+
+@contacts_bp.route('/block_contact/<int:contact_id>', methods=['POST'])
+def block_contact(contact_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    owner_id = session['user_id']
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT blocked FROM contacts
+            WHERE owner_id = %s AND contact_user_id = %s
+        """, (owner_id, contact_id))
+        row = cursor.fetchone()
+
+        if row is None:
+            return jsonify({'error': 'Contact not found'}), 404
+
+        new_status = not row[0]
+
+        cursor.execute("""
+            UPDATE contacts SET blocked = %s
+            WHERE owner_id = %s AND contact_user_id = %s
+        """, (new_status, owner_id, contact_id))
+
+        db.commit()
+        return jsonify({'success': True, 'blocked': new_status})
+
+    except Exception as e:
+        db.rollback()
+        print(f"Error toggling block status: {str(e)}")
+        return jsonify({'error': 'Failed to update block status'}), 500
+    finally:
+        db.close()
