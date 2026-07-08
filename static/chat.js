@@ -9,6 +9,7 @@ window.toggleMenu = ui.toggleMenu;
 window.deleteChat = ui.deleteChat;
 window.deleteContact = ui.deleteContact;
 window.toggleBlockContact = ui.toggleBlockContact;
+window.toggleMuteContact = ui.toggleMuteContact;
 
 // ────────────────────── DOM References ────────────────────
 const socket = io();

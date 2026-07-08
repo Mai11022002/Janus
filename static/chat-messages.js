@@ -148,7 +148,13 @@ function handleReceiveMessage(data) {
     }
 
     // Trigger Native HTML5 Web Notification if browser tab is backgrounded
-    if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+    let isMuted = false;
+    if (!isGroupMsg) {
+        const senderItem = document.getElementById(`chat-item-${data.sender_id}`);
+        isMuted = senderItem && senderItem.dataset.muted === 'true';
+    }
+
+    if (!isMuted && document.hidden && "Notification" in window && Notification.permission === "granted") {
         if (battleHorn) {
             battleHorn.currentTime = 0;
             battleHorn.play().catch(err => console.log("Browser blocked sound audio track playback:", err));

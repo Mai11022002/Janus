@@ -136,6 +136,25 @@ export async function deleteChat(event, contactId) {
     }
 }
 
+export async function toggleMuteContact(event, contactId) {
+    event.stopPropagation();
+    document.getElementById(`menu-${contactId}`).classList.remove('open');
+
+    try {
+        const res = await fetch(`/mute_contact/${contactId}`, { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success) {
+            const item = document.getElementById(`chat-item-${contactId}`);
+            const btn = document.querySelector(`#menu-${contactId} .mute-btn`);
+            item.dataset.muted = data.muted;
+            btn.textContent = data.muted ? '🔊 Unmute User' : '🔇 Mute User';
+        }
+    } catch (err) {
+        console.error('Mute contact failed:', err);
+    }
+}
+
 export async function toggleBlockContact(event, contactId) {
     event.stopPropagation();
     document.getElementById(`menu-${contactId}`).classList.remove('open');
@@ -187,6 +206,7 @@ export function renderContactItem(user) {
     div.onclick = () => selectUser(user.id, user.username, user.is_online, user.last_seen);
     div.dataset.isOnline = user.is_online;
     div.dataset.lastSeen = user.last_seen || '';
+    div.dataset.muted = user.muted || false;
     div.innerHTML = `
         <div class="avatar"></div>
         <div class="chat-info">
@@ -196,6 +216,7 @@ export function renderContactItem(user) {
             <button class="menu-trigger" onclick="toggleMenu(event, ${user.id})">⋮</button>
             <div class="dropdown-menu" id="menu-${user.id}">
                 <button onclick="deleteChat(event, ${user.id})">🗑️ Delete Chat</button>
+                <button class="mute-btn" onclick="toggleMuteContact(event, ${user.id})">🔇 Mute User</button>
                 <button class="block-btn" onclick="toggleBlockContact(event, ${user.id})">🚫 Block User</button>
                 <button class="danger" onclick="deleteContact(event, ${user.id})">⛔ Delete Contact</button>
             </div>
