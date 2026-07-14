@@ -34,11 +34,18 @@ def index():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
-        SELECT u.id, u.username, u.first_name, u.last_name, u.phone, u.is_online, u.last_seen, c.blocked, c.muted
+        SELECT u.id, u.username, u.first_name, u.last_name, u.phone, u.is_online, u.last_seen, c.blocked, c.muted,
+            (SELECT m.content FROM messages m
+            WHERE ((m.sender_id = %s AND m.receiver_id = u.id) OR (m.sender_id = u.id AND m.receiver_id = %s))
+                AND m.group_id IS NULL
+            ORDER BY m.created_at DESC LIMIT 1) AS last_message,
+            (SELECT COUNT(*) FROM messages m
+            WHERE m.sender_id = u.id AND m.receiver_id = %s AND m.status != 'read' AND m.group_id IS NULL
+            ) AS unread_count
         FROM users u
         JOIN contacts c ON u.id = c.contact_user_id
         WHERE c.owner_id = %s
-    """, (session['user_id'],))
+    """, (session['user_id'], session['user_id'], session['user_id'], session['user_id']))
     users = cursor.fetchall()
 
     cursor.execute("""

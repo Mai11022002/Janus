@@ -145,6 +145,17 @@ function handleReceiveMessage(data) {
             const msgType = getMessageType(data.message, data.type);
             addMessageToScreen(data.message, 'received', msgType, null, null);
         }
+
+        const senderItem = document.getElementById(`chat-item-${data.sender_id}`);
+        if (senderItem) {
+            const preview = senderItem.querySelector('.last-message-preview');
+            if (preview) {
+                preview.textContent = data.type === 'text' ? data.message : 'Sent an attachment';
+            }
+            if (parseInt(data.sender_id) !== parseInt(currentRecipientId) || document.hidden) {
+                senderItem.classList.add('unread');
+            }
+        }
     }
 
     // Trigger Native HTML5 Web Notification if browser tab is backgrounded

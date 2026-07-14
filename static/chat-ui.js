@@ -54,6 +54,8 @@ export async function selectUser(id, username, isOnline, lastSeen) {
 
         if (!isGroupChat) {
             await fetch(`/status/${id}`, { method: 'POST' });
+            const chatItem = document.getElementById(`chat-item-${id}`);
+            if (chatItem) chatItem.classList.remove('unread');
         }
     } catch (error) {
         console.error("Error fetching messages:", error);

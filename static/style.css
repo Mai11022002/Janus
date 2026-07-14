@@ -533,6 +533,25 @@ body {
   font-size: 14px;
 }
 
+.chat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.last-message-preview {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-item.unread h4,
+.chat-item.unread .last-message-preview {
+  font-weight: bold;
+  color: var(--text-dark);
+}
+
 .chat-item-menu {
   margin-left: auto;
   position: relative;
