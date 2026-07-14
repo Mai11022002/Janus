@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="{{ current_user.theme }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,6 +28,21 @@
                         <a href="/logout" class="profile-dropdown-item-link">
                             <button class="danger">🚪 Log out</button>
                         </a>
+                    </div>
+                </div>
+
+                <div class="settings-menu-container">
+                    <button class="settings-menu-trigger" id="settings-menu-btn" title="Options">⚙️</button>
+                    <div class="profile-dropdown-menu" id="settings-dropdown">
+                        <button id="accessibility-btn">♿ Accessibility</button>
+                    </div>
+                    <div class="profile-dropdown-menu" id="accessibility-panel">
+                        <button id="back-to-settings-btn">← Back</button>
+                        <hr class="dropdown-divider">
+                        <button id="theme-light-btn">☀️ Light Mode</button>
+                        <button id="theme-dark-btn">🌙 Dark Mode</button>
+                        <hr class="dropdown-divider">
+                        <button disabled>🔊 Screen Reader Support (Coming Soon)</button>
                     </div>
                 </div>
             </header>

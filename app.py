@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, redirect, url_for
+from flask import Flask, render_template, session, redirect, url_for, request, jsonify
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
 from db import get_db_connection
@@ -48,11 +48,33 @@ def index():
         WHERE gm.user_id = %s
     """, (session['user_id'],))
     groups = cursor.fetchall()
-    cursor.execute("SELECT username, first_name, last_name FROM users WHERE id = %s", (session['user_id'],))
+    cursor.execute("SELECT username, first_name, last_name, theme FROM users WHERE id = %s", (session['user_id'],))
     current_user = cursor.fetchone()
     db.close()
 
     return render_template('index.html', users=users, groups=groups, current_user=current_user)
+
+@app.route('/update_theme', methods=['POST'])
+def update_theme():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    theme = request.json.get('theme')
+    if theme not in ('light', 'dark'):
+        return jsonify({'error': 'Invalid theme'}), 400
+    
+    db = get_db_connection()
+    cursor = db.cursor()
+    try:
+        cursor.execute("UPDATE users SET theme = %s WHERE id = %s", (theme, session['user_id']))
+        db.commit()
+        return jsonify({'success': True, 'theme': theme})
+    except Exception as e:
+        db.rollback()
+        print(f"Error updating theme: {str(e)}")
+        return jsonify({'error': 'Failed to update theme'}), 500
+    finally:
+        db.close()
 
 @socketio.on('send_message')
 def handle_message(data):

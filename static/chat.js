@@ -161,6 +161,46 @@ document.addEventListener('click', (e) => {
     }
 });
 
+document.getElementById('settings-menu-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('settings-dropdown').classList.toggle('open');
+});
+
+document.getElementById('accessibility-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('settings-dropdown').classList.remove('open');
+    document.getElementById('accessibility-panel').classList.add('open');
+});
+
+document.getElementById('back-to-settings-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('accessibility-panel').classList.remove('open');
+    document.getElementById('settings-dropdown').classList.add('open');
+});
+
+async function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+        await fetch('/update_theme', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme })
+        });
+    } catch (err) {
+        console.error('Failed to save theme:', err);
+    }
+}
+
+document.getElementById('theme-light-btn').addEventListener('click', () => setTheme('light'));
+document.getElementById('theme-dark-btn').addEventListener('click', () => setTheme('dark'));
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.settings-menu-container')) {
+        document.getElementById('settings-dropdown').classList.remove('open');
+        document.getElementById('accessibility-panel').classList.remove('open');
+    }
+});
+
 // ────────────────────── Picker Panel Toggle ────────────────────
 emojiBtn.addEventListener('click', (e) => {
     e.stopPropagation();
