@@ -247,4 +247,6 @@ def handle_call_ended(data):
     emit('remote_call_ended', {} , to=str(data['target_id']))
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
+    socketio.run(app, host='0.0.0.0', port=port, debug=debug)
